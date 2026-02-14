@@ -2,6 +2,8 @@
 
 **Spring 2026 | Bogazici University | Dr. Eyuphan Koc**
 
+**HW0 — Hilal Kurt İrfanoğlu:** Architect-turned-entrepreneur with 10 years of experience on major projects, now building AI-powered visual intelligence solutions for the construction industry as Founder & CEO of Poder.
+
 ---
 
 ## Course Overview
