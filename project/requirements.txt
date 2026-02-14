@@ -1,0 +1,8 @@
+anthropic
+openai
+imap_tools
+python-telegram-bot
+schedule
+python-dotenv
+rich
+httpx

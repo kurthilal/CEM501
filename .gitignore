@@ -1,0 +1,42 @@
+# Environment
+.env
+*.env.local
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.cursor/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Project runtime
+project/memory/*.db
+project/memory/*.sqlite
+project/logs/*.log
+project/channels/*.json
+
+# Data
+*.xls
+*.xlsx
+*.csv
+!resources/*.csv
+
+# Keys & secrets
+*.pem
+*.key
+credentials/

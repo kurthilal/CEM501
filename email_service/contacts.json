@@ -1,0 +1,35 @@
+{
+  "course": "CEM501 - Communication Skills and Leadership for Engineers - Spring 2026",
+  "students": [
+    {
+      "id": "2025722054",
+      "name": "PEYMAN",
+      "surname": "JAFERI",
+      "email": "p.jafari.j@gmail.com"
+    },
+    {
+      "id": "2024722030",
+      "name": "HILAL",
+      "surname": "KURT IRFANOGLU",
+      "email": "hilalkurt@irfanoglu.com"
+    },
+    {
+      "id": "2025722036",
+      "name": "ALI FURKAN",
+      "surname": "USTUNDAG",
+      "email": "ustundag.af@gmail.com"
+    },
+    {
+      "id": "2025722039",
+      "name": "KAAN",
+      "surname": "VARDAR",
+      "email": "kaanvardar99@gmail.com"
+    },
+    {
+      "id": "2025722045",
+      "name": "HUSEYIN EMRE",
+      "surname": "YILMAZ",
+      "email": "yilmazzemre@gmail.com"
+    }
+  ]
+}
