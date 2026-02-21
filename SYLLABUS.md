@@ -130,8 +130,6 @@ Bogazici University uses the following grade point system. Final letter grades a
 | CB | 2.5 | FF | 0.0 |
 | CC | 2.0 | | |
 
-Graduate students must earn a minimum grade of **CC** to receive credit for the course and maintain a cumulative GPA of at least **2.50**.
-
 ---
 
 ## Midterm & Final
