@@ -34,7 +34,7 @@ Think about what that means: on a $100 million project, expect roughly **990 RFI
 
 > **Key Insight:** RFIs are not occasional clarifications -- they are a continuous, high-volume communication stream. Managing them well is not optional; it is a core project management competency.
 
-*Source: Navigant Construction Forum (2013), "Construction Dispute Digest: The RFI." Data widely cited by [CMAA](https://www.cmaanet.org/sites/default/files/resource/Impact%20&%20Control%20of%20RFIs%20on%20Construction%20Projects.pdf) and [eSUB](https://esub.com/blog/rfi-cost-construction-firm).*
+*Source: Navigant Construction Forum (2013), "Impact & Control of RFIs on Construction Projects." Data widely cited by [CMAA](https://www.cmaanet.org/sites/default/files/resource/Impact%20&%20Control%20of%20RFIs%20on%20Construction%20Projects.pdf) and [eSUB](https://esub.com/blog/rfi-cost-construction-firm).*
 
 ---
 
@@ -42,7 +42,7 @@ Think about what that means: on a $100 million project, expect roughly **990 RFI
 
 The Navigant study estimated the average cost to review and respond to a single RFI at approximately **$1,080**. More recent industry estimates place the figure between **$1,000 and $3,000 per RFI** when indirect costs (coordination meetings, re-sequencing work, waiting time) are included.
 
-But here is the part that should alarm you: **more than 13% of RFIs** were classified as "unjustifiable" -- meaning the answer was already available in the contract documents. Collectively, these unnecessary RFIs cost an average of **$113,400 per project** in wasted review time alone.
+But here is the part that should alarm you: **more than 13% of RFIs** were classified as "unjustifiable" -- meaning the answer was already available in the contract documents. On a large project, these unnecessary RFIs cost an estimated **$113,400** in wasted review time alone.
 
 | Cost Category | Estimated Value |
 |---------------|-----------------|
@@ -58,11 +58,11 @@ But here is the part that should alarm you: **more than 13% of RFIs** were class
 
 ### 1.3 The Time: 9.7 Days of Schedule Exposure
 
-According to the Navigant study, the average first reply time for an RFI is **6.4 days**, with a median of **9.7 days**. On complex or multi-discipline questions, response times stretch well beyond two weeks.
+According to the Navigant study, the average time to first reply on an RFI is **6.4 days**, while the median time from RFI creation to closure is **9.7 days**. On complex or multi-discipline questions, response times stretch well beyond two weeks.
 
 Worse still, **nearly 22% of all RFIs receive no response at all**. An unanswered RFI is not just an administrative failure -- it is a ticking schedule bomb. When an RFI involves a critical-path activity, every day of delay translates directly to project-level delay, with general conditions costs running **$3,000 to $8,000 per day** on typical commercial projects (site trailers, supervision, temporary utilities, equipment rentals).
 
-Industry sources estimate that RFI-related delays can add up to **10% of a project's total duration**.
+Some industry analyses suggest that RFI-related delays can add up to **10% of a project's total duration**, though this figure varies widely by project type and management quality.
 
 > **Key Insight:** A single unanswered RFI on the critical path can cost more than the entire RFI management budget for a small project. This is why your RFI must clearly state the response deadline and the schedule consequence if that deadline is missed.
 
@@ -80,11 +80,38 @@ Given the cost and schedule exposure, every RFI you write should be engineered f
 | **Date Submitted** | Date of formal issuance | Establishes the delay clock |
 | **Subject Line** | Specific reference: drawing number, spec section, grid line | Lets reviewer find the issue in seconds |
 | **Question** | One clear question per RFI | Multi-question RFIs get delayed or partially answered |
-| **Suggested Solution** | Your proposed interpretation | Speeds response by 30-50% (the reviewer can simply agree or modify) |
+| **Suggested Solution** | Your proposed interpretation | Speeds response significantly (the reviewer can simply agree or modify rather than drafting from scratch) |
 | **Impact if Unanswered** | Schedule/cost consequence + response deadline | Creates urgency and documents potential claims |
 | **Attachments** | Marked-up drawing, photo, or sketch | Visual evidence eliminates ambiguity |
 
 > **Key Insight:** The number-one reason RFIs get rejected or delayed is that they ask multiple unrelated questions in a single submission. One RFI = one question. Always.
+
+**Example of a weak RFI:**
+
+```
+Subject: Question about rebar
+
+Hi,
+
+We have some questions about the rebar on the project.
+
+1. What is the spacing for the pile cap rebar at Grid B-3?
+2. Do we need to increase the concrete cover on the north wall?
+3. Should we use epoxy-coated rebar for the exterior footings?
+
+Can you clarify? Thanks.
+```
+
+**What is wrong:**
+
+- **Vague subject line** -- "Question about rebar" references no drawing, spec section, or location. The reviewer cannot prioritize or route it (violates the Subject Line field in section 1.4).
+- **Multiple unrelated questions** -- Three different issues (spacing, cover, coating) bundled into one RFI. This guarantees partial answers and delays (violates the one-question rule).
+- **No suggested resolution** -- The contractor offers no interpretation, forcing the engineer to start from scratch.
+- **No deadline or impact statement** -- No schedule consequence, no urgency. This RFI will sit at the bottom of the pile.
+- **No attachments** -- No marked-up drawing or photo to show the conflict.
+- **Casual tone** -- "Hi," "Can you clarify?", and "Thanks." are fine for email, not for a contractual document that may become a claim exhibit.
+
+**Now compare with the strong version:**
 
 **Example of a strong RFI question:**
 
@@ -117,14 +144,14 @@ If an RFI is a question, a submittal is a declaration: "We intend to use this pr
 
 Submittals -- shop drawings, product data, samples, calculations -- are one of the highest-volume document types on commercial construction projects. A mid-sized commercial building can generate **300 to 800+ submittals**. Each one must be reviewed by the contractor's project team before being forwarded to the architect or engineer for formal review.
 
-The industry-wide data on first-submission rejection rates is sobering:
+A recent industry survey by BuildSync (6,000+ construction professionals) reported the following figures on first-submission rejection rates:
 
 | Metric | Value |
 |--------|-------|
-| First-submission rejection rate | **~35%** (industry average) |
-| Cost per rejection | **~$805** |
+| First-submission rejection rate | **~35%** (survey estimate) |
+| Cost per rejection | **~$805** (labor, coordination, schedule impact) |
 | Time added per rejection cycle | **2-4 weeks** |
-| Rejection cost on a 500-submittal project | **~$140,000+** |
+| Rejection cost on a 500-submittal project | **~$140,000+** (derived) |
 
 After three rejection-resubmission cycles, a single mechanical equipment submittal can consume **10-12 weeks of schedule time** -- and if that equipment has a manufacturing lead time of 16-20 weeks, you may have just pushed procurement into the next production slot, adding months of delay.
 
@@ -159,6 +186,50 @@ Based on industry data, the most common reasons for submittal rejection include:
 
 > **Key Insight:** The single most effective thing you can do to reduce rejections is to read the specification section before submitting. Check what product is specified, what data is required, and what certifications must be included. This 15-minute check saves 2-4 weeks of resubmission time.
 
+**Example: Completed Submittal Transmittal**
+
+```
+SUBMITTAL TRANSMITTAL
+
+Project:    Kadikoy Mixed-Use Development (KMU-2026)
+Contract:   C-2026-0341
+Submittal:  SUB-S-008, Rev 0
+Date:       February 10, 2026
+Spec Ref:   05 12 00 -- Structural Steel Framing
+
+To:         Architect of Record -- Mimarlar Tasarim A.S.
+From:       Koc Insaat Ltd. (General Contractor)
+
+ENCLOSED ITEMS:
+  1. Shop drawings (structural steel connections, Zones A-C)   6 sheets
+  2. Mill certificates (W14x30 wide-flange beams)              2 certificates
+  3. Connection calculations (moment connections at Grid D)     1 set (14 pages)
+
+Manufacturer:   Kardemir A.S.
+Fabricator:     Celik Montaj Ltd.
+
+CONTRACTOR'S CERTIFICATION:
+We have reviewed the enclosed submittal and confirm that it complies with
+the contract documents, applicable codes, and project specifications,
+except as noted.
+
+ACTION REQUESTED:
+  [X] Approved
+  [ ] Approved as Noted
+  [ ] Revise and Resubmit
+  [ ] Rejected
+
+DISTRIBUTION:
+  - Architect of Record (2 copies)
+  - Structural Engineer of Record (1 copy)
+  - Project File (1 copy)
+  - Fabricator (1 copy, returned after review)
+
+Prepared by: A. Yilmaz, PE — Project Engineer, Koc Insaat Ltd.
+```
+
+Notice the structure: the transmittal identifies the **project and contract** (traceability), references the **exact spec section** (so the reviewer knows what to check against), **itemizes every enclosure** with quantities (nothing is ambiguous), includes the **contractor's certification** (confirming someone actually reviewed the content before submission), and specifies the **action requested** and **distribution list** (so the routing is clear). This is the submittal equivalent of the strong RFI: every field serves a purpose, and nothing is left for the reviewer to guess.
+
 ---
 
 ## Part III: Prompt Engineering -- Talking to AI Effectively
@@ -177,9 +248,9 @@ Anthropic's documentation organizes prompt engineering into a hierarchy of techn
 | Technique | Description | CEM Analogy |
 |-----------|-------------|-------------|
 | **Be clear and direct** | Strip out fluff, use plain language, avoid ambiguity | Writing a spec section, not a novel |
-| **Use examples** (few-shot) | Show the model what good output looks like | Providing a sample submittal for reference |
-| **Let the model think** (chain of thought) | Ask it to reason step-by-step before answering | Requiring a contractor to show calculations, not just the answer |
-| **Use XML/Markdown tags** | Organize your prompt into labeled sections | Using CSI MasterFormat divisions to organize specs |
+| **Use examples** (multishot prompting) | Show the model what good output looks like | Providing a sample submittal for reference |
+| **Let Claude think** (chain of thought) | Ask it to reason step-by-step before answering | Requiring a contractor to show calculations, not just the answer |
+| **Use XML tags** | Organize your prompt into labeled sections | Using CSI MasterFormat divisions to organize specs |
 | **Give a role** (system prompt) | Tell the model who it is and how to behave | The project specifications that govern all work |
 | **Chain complex prompts** | Break a big task into sequential smaller tasks | Phased construction: foundation before structure |
 
@@ -233,16 +304,103 @@ Do you want a table? Bullet points? A formal letter? A JSON object? Say so expli
 
 ---
 
+### 3.4 Bad Prompt vs. Good Prompt: The Difference in Action
+
+Rules are abstract until you see them applied. Let us take the same rebar issue from section 1.4 and watch what happens with two very different prompts.
+
+**Vague prompt:**
+
+```
+Write an RFI about a rebar issue.
+```
+
+**What the model produces:**
+
+```
+Dear Sir/Madam,
+
+We would like to request information regarding a rebar issue on the
+project. There appears to be a discrepancy in the rebar specifications.
+Please clarify the correct rebar size, spacing, and placement.
+
+Thank you for your attention to this matter.
+
+Sincerely,
+[Your Name]
+```
+
+This output is useless. No project name, no drawing reference, no spec section, no specific question, no suggested resolution, no deadline. You could not send this. The model is not at fault -- it produced exactly what was asked for: a generic RFI about a generic rebar issue.
+
+**Structured prompt (applying all 5 rules):**
+
+```
+You are a project engineer on the Kadikoy Mixed-Use Development
+($45M, Contract C-2026-0341). [Rule 1: Role]
+
+Reference documents:
+- Drawing S-201, Detail 4: shows #5 rebar at 12" o.c. for pile cap
+  at Grid B-3
+- Spec Section 03 30 00, Para 3.2.A: requires #5 at 8" o.c. for pile
+  caps exceeding 1.2 m depth
+- The pile cap at Grid B-3 is 1.5 m deep [Rule 2: Reference documents]
+
+Draft a single RFI asking which rebar spacing governs -- the drawing
+or the spec. [Rule 3: One task]
+
+Use the same structure as this example:
+[Context → Conflict → Question → Suggested Resolution → Impact]
+[Rule 4: Show an example]
+
+Format: formal RFI, under 200 words, with fields for RFI Number,
+Date, Subject, Question, Suggested Resolution, and Impact.
+[Rule 5: Output format]
+
+The suggested resolution is to install per the spec (more stringent).
+Rebar fabrication for Zone B starts Feb 24; response needed by Feb 19
+to avoid a 3-day critical-path delay.
+```
+
+**What the model produces:**
+
+```
+RFI Number: RFI-[TBD]
+Date:       February 12, 2026
+To:         Structural Engineer of Record
+Subject:    Drawing S-201 Detail 4 vs. Spec 03 30 00 Para 3.2.A --
+            Rebar Spacing at Grid B-3 Pile Cap
+
+Drawing S-201, Detail 4 indicates #5 rebar at 12" o.c. for the pile
+cap at Grid B-3. Specification Section 03 30 00, Paragraph 3.2.A
+requires #5 at 8" o.c. for pile caps exceeding 1.2 m in depth. The
+pile cap at Grid B-3 is 1.5 m deep.
+
+Question: Which rebar spacing governs -- the drawing (12" o.c.) or
+the specification (8" o.c.)?
+
+Suggested Resolution: Install #5 rebar at 8" o.c. per the
+specification, as it is the more stringent requirement.
+
+Impact: Rebar fabrication for Zone B is scheduled to begin February 24.
+A response is requested by February 19 to avoid a 3-day delay to the
+critical path.
+```
+
+This output is near-send-ready. It matches the anatomy from section 1.4: context, conflict, single question, suggested resolution, and schedule impact with dates. A project engineer would review it, assign the RFI number, and submit.
+
+> **Key Insight:** Same model, same capability -- the only difference is the quality of the input. A vague prompt produces vague output. A structured prompt produces a structured document. This is exactly the same principle as writing a strong RFI: garbage in, garbage out.
+
+---
+
 ## Part IV: Building Your Prompt Template Library
 **(~15 min lecture + demo)**
 
 ### 4.1 Why Templates Matter
 
-Using standardized templates for common documents reduces errors and ensures consistency. Research by the UK's Get It Right Initiative (GIRI) found that errors in construction cost the UK industry **GBP 10-25 billion per year**, with standardized processes and checklists identified as a key mitigation strategy.
+Using standardized templates for common documents reduces errors and ensures consistency. Research by the UK's Get It Right Initiative (GIRI) found that errors in construction cost the UK industry **GBP 10-25 billion per year**, with their Error Reduction Framework -- a structured approach combining root cause analysis, standardized processes, and organizational culture change -- identified as a key mitigation strategy.
 
 The same principle applies to AI prompts: a well-designed template with clear structure, defined fields, and consistent formatting will produce reliable output every time -- just like a standard RFI form produces better RFIs than free-form emails.
 
-*Source: [GIRI: Get It Right Initiative](https://getitright.uk.com/); [zipBoard: How to Reduce Construction Document Errors](https://zipboard.co/blog/aec/common-errors-to-look-out-for-during-construction-document-reviews/).*
+*Source: [GIRI: Get It Right Initiative](https://getitright.uk.com/); [zipBoard: 9 Common Construction Document Errors and How to Avoid Them](https://zipboard.co/blog/aec/common-errors-to-look-out-for-during-construction-document-reviews/).*
 
 ---
 
@@ -430,9 +588,21 @@ The skills you build writing good RFIs transfer directly to writing good prompts
 
 ---
 
+### What's Next -- Week 4 Preview
+
+This week we focused on **written** communication (Strand B): RFIs, submittals, and prompt templates. Next week we shift to **verbal** communication (Strand A): presentations and public speaking.
+
+- **The challenge:** Estimates of public speaking anxiety range from ~25-40% for significant fear (Gallup, Chapman University surveys) to 75% when including any degree of nervousness. For engineers -- who often default to data-heavy, text-dense slides -- the gap between technical competence and presentation skill is a competitive differentiator.
+- **What we will cover:** The **Hook-Problem-Solution-Ask** framework for structuring a persuasive presentation, evidence-based principles for slide design (signal-to-noise ratio, assertion-evidence format), and practical techniques for managing presentation anxiety.
+- **Lightning talk assignment:** You will deliver a **3-minute lightning talk** on a construction scenario -- a schedule delay, a change order dispute, a safety incident, or a constructability concern. Start thinking about your topic now.
+
+> **Reminder:** Your **M1 -- Prompt Template Library** (3 templates + test outputs) is due before the Week 4 session. Make sure your `project/templates/` directory is committed and pushed.
+
+---
+
 ### Further Reading
 
-- Navigant Construction Forum (2013). "Construction Dispute Digest: The RFI." [Summary via CMAA](https://www.cmaanet.org/sites/default/files/resource/Impact%20&%20Control%20of%20RFIs%20on%20Construction%20Projects.pdf)
+- Navigant Construction Forum (2013). "Impact & Control of RFIs on Construction Projects." [CMAA hosted PDF](https://www.cmaanet.org/sites/default/files/resource/Impact%20&%20Control%20of%20RFIs%20on%20Construction%20Projects.pdf)
 - [eSUB: The RFI and its Cost to Your Construction Firm](https://esub.com/blog/rfi-cost-construction-firm)
 - [Procore: RFIs -- A Contractor's Guide](https://www.procore.com/library/rfi-construction)
 - [Amazing Architecture: The Resubmittal Spiral](https://amazingarchitecture.com/articles/the-resubmittal-spiral-breaking-the-cycle-of-construction-delays)
