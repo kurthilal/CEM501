@@ -24,18 +24,19 @@ Engineers are trained to solve problems. But solving a problem and *convincing s
 
 ### 1.1 The Fear Is Real -- And Nearly Universal
 
-Public speaking anxiety -- clinically known as glossophobia -- is one of the most common human fears. The data are striking:
+Public speaking anxiety -- clinically known as glossophobia -- is one of the most common human fears. How common depends on how you measure it:
 
-- Approximately **75% of people** experience some degree of public speaking anxiety, according to the National Institute of Mental Health.
-- Of those, about **10% experience severe, debilitating fear** that actively limits their professional functioning.
-- In one study, **50% of participants reported high anxiety** during public speaking, 42% moderate anxiety, and only 9% low anxiety.
-- A younger demographic is disproportionately affected: only **25% of 16-24 year olds** report feeling confident speaking to an audience, compared to 69% of adults over 45.
+- The **Chapman University Survey of American Fears** -- one of the most methodologically rigorous surveys on this topic -- found that **29% of Americans** report being "Afraid" or "Very Afraid" of public speaking, while 71% report being "Not Afraid" or only "Slightly Afraid."
+- Gallup polls have historically found that approximately **40% of Americans** fear public speaking.
+- Popular sources frequently cite a figure of **75%**, but this number has no traceable origin in peer-reviewed literature and likely conflates mild nervousness with significant anxiety.
+- A study by Stein, Walker, and Forde (1996) in a community sample found that **10% of respondents** reported public speaking anxiety causing marked interference with work, social life, or education, or causing them marked distress.
+- Younger adults are disproportionately affected: confidence in public speaking tends to increase with age and experience.
 
-The career consequences are measurable. Research indicates that **7% of workers have passed up promotions** specifically because of public speaking fear, and a broader survey found that **45% of people have either rejected a promotion or refrained from applying for a job** due to glossophobia.
+The career consequences are real. A 2014 Prezi/Harris Poll of over 2,000 U.S. adults found that among those who give presentations, **nearly 70% said presentation skills are critical to their success at work**.
 
-> **Key Insight:** If three-quarters of the population fears public speaking, then the engineer who can present confidently is not just "good at soft skills" -- they are a statistical outlier with a competitive advantage. In a room of ten engineers, you may be one of only two or three who can deliver a clear, composed presentation. That is a career differentiator.
+> **Key Insight:** Whether the true prevalence is 29% or 40%, the implication is the same: a significant fraction of professionals struggle with public speaking. The engineer who can present confidently has a genuine competitive advantage -- and the skill is learnable.
 
-*Sources: National Institute of Mental Health, cited in [Teleprompter.com Public Speaking Statistics 2025](https://www.teleprompter.com/blog/public-speaking-statistics); [PassiveSecrets: Fear of Public Speaking Statistics](https://passivesecrets.com/fear-of-public-speaking-statistics/); [Crown Counseling: Fear of Public Speaking Statistics 2025](https://crowncounseling.com/statistics/fear-of-public-speaking-statistics/)*
+*Sources: [Chapman University Survey of American Fears](https://www.chapman.edu/wilkinson/research-centers/babbie-center/survey-american-fears.aspx); Stein, M.B., Walker, J.R., & Forde, D.R. (1996). "Public-speaking fears in a community sample." Archives of General Psychiatry, 53(2), 169-174; [Prezi/Harris Poll (2014)](https://www.insivia.com/quoter/70-say-presentation-skills-are-critical-for-career-success/)*
 
 ---
 
@@ -46,7 +47,7 @@ Every construction firm has one: the project engineer who knows the schedule ins
 This is not a personality flaw. It is a training gap. Engineering education historically emphasizes analysis over communication. A 2024 study by Coffelt et al. at Iowa State University examined what communication skills construction engineering graduates actually need on the job. Their findings:
 
 - In an analysis of **100 job advertisements** for construction engineering positions, **oral communication skills accounted for over half of all communication skills mentioned** -- more than written skills.
-- The most frequently listed skills were **interpersonal communication, teamwork, and leadership** -- all verbal.
+- The most frequently listed skills were **teamwork, leadership, and interpersonal communication** -- all verbal.
 - When the researchers interviewed 11 employers, a consistent theme emerged: while new graduates had sufficient *written* communication skills, **they were lacking in interpersonal and oral communication abilities**, including assertiveness, relationship building, and audience adaptation.
 
 ABET -- the accreditation body for engineering programs -- lists "an ability to communicate effectively with a range of audiences" as a required student outcome. Yet most programs assess this through a single capstone presentation, not through sustained practice.
@@ -61,7 +62,7 @@ ABET -- the accreditation body for engineering programs -- lists "an ability to 
 
 The link between presentation ability and career advancement is well documented:
 
-- **70% of Americans** believe that strong presentation skills directly contribute to career promotions and raises.
+- Among professionals who give presentations, **nearly 70%** say that presentation skills are critical to their success at work (Prezi/Harris Poll, 2014).
 - In engineering firms specifically, the pattern is consistent: the engineers who advance fastest to management and leadership roles are almost always far above the engineering norm in public speaking ability. As the Engineering Management Institute notes, the better speaker frequently receives the promotion over the better programmer or analyst.
 - ASCE has published that public speaking is a "critical skill civil engineers need to learn," noting that engineers must regularly explain and defend their work to non-technical audiences -- owners, boards, public agencies, and juries.
 
@@ -94,7 +95,7 @@ For CEM professionals, we distill these insights into four beats:
 **Hook (10% of your time)**
 Open with something concrete and visual: a site photo, a single striking number, a brief story from the field. Never open with "Today I will talk about..." or a table of contents slide.
 
-Gallo's research confirms that **emotional connection in the first 30 seconds** determines whether the audience pays attention for the rest. In a CEM context, "emotional" does not mean sentimental -- it means *consequential*. Show the audience why they should care.
+Gallo emphasizes that establishing an emotional connection early -- through storytelling, passion, and a compelling opening -- is critical for capturing and maintaining audience attention. In a CEM context, "emotional" does not mean sentimental -- it means *consequential*. Show the audience why they should care.
 
 Example hook for a schedule recovery presentation:
 > "This photo was taken yesterday at Grid Line 7. The slab-on-grade that should have been poured two weeks ago is still exposed earth. We are 14 days behind on the critical path. Here is how we get back on track."
@@ -142,7 +143,7 @@ Most engineers design slides the way they write reports: dense, thorough, and te
 
 ### 3.1 Mayer's Multimedia Learning Principles
 
-Richard Mayer, a cognitive psychologist at UC Santa Barbara, has spent decades studying how people learn from multimedia materials. His research, published across hundreds of studies and synthesized in *Multimedia Learning* (2001, 2009, 2021), identifies 12 evidence-based principles. The ones most relevant to slide design:
+Richard Mayer, a cognitive psychologist at UC Santa Barbara, has spent decades studying how people learn from multimedia materials. His research, published across hundreds of studies and synthesized in *Multimedia Learning* (2001, 2009, 2020), identifies 15 evidence-based principles in the most recent edition. The ones most relevant to slide design:
 
 | Principle | What It Means | Implication for Slides |
 |-----------|---------------|----------------------|
@@ -156,7 +157,7 @@ The redundancy principle is particularly important for engineers, who often put 
 
 > **Key Insight:** The instinct to "put everything on the slide so people can follow along" is well-intentioned but empirically wrong. Research consistently shows that audiences learn and retain more when slides are visual and the speaker provides the verbal explanation -- not when both say the same thing.
 
-*Source: Mayer, R.E. (2009). Multimedia Learning (2nd ed.). Cambridge University Press. See also: [Nine Ways to Reduce Cognitive Load in Multimedia Learning (Mayer & Moreno)](https://faculty.washington.edu/farkas/WDFR/MayerMoreno9WaysToReduceCognitiveLoad.pdf)*
+*Source: Mayer, R.E. (2020). Multimedia Learning (3rd ed.). Cambridge University Press. See also: Mayer, R.E. & Moreno, R. (2003). [Nine Ways to Reduce Cognitive Load in Multimedia Learning](https://faculty.washington.edu/farkas/WDFR/MayerMoreno9WaysToReduceCognitiveLoad.pdf). Educational Psychologist, 38(1), 43-52.*
 
 ---
 
@@ -164,7 +165,7 @@ The redundancy principle is particularly important for engineers, who often put 
 
 Cognitive load theory, developed by John Sweller, explains why dense slides fail. The core insight: **working memory can hold only about 3-5 items at a time** for active processing, though the classic estimate by Miller (1956) suggested 7 plus or minus 2 "chunks."
 
-When you project a slide with 8 bullet points, a detailed table, and a footnote, your audience's working memory is immediately overwhelmed. They stop listening to you and start reading the slide -- and they cannot do both effectively. Research on student attention during presentations found that **when slides displayed a single bullet point, students engaged comprehensively and read every word**, but **when slides were overloaded with text and complex diagrams, engagement dropped significantly.**
+When you project a slide with 8 bullet points, a detailed table, and a footnote, your audience's working memory is immediately overwhelmed. They stop listening to you and start reading the slide -- and they cannot do both effectively. An eye-tracking study of student attention during presentations (Gunawan et al., 2017, IEEE) found that **when slides displayed a single bullet point, students engaged comprehensively and read every word**, but **when slides were overloaded with text and complex diagrams, engagement dropped significantly** -- though this was a small study (n=30) and the findings should be considered preliminary.
 
 The practical rules that emerge from this research:
 
@@ -172,7 +173,7 @@ The practical rules that emerge from this research:
 If you need two points, make two slides. Slides cost nothing. Cognitive overload costs everything.
 
 **Rule 2 -- Minimize text.**
-Research-based guidelines recommend **no more than 4 bullet points per slide**. If you are reading your slides aloud, you have too much text -- and you are triggering the redundancy effect.
+Consistent with Cowan's working memory research (~4 items), a practical guideline is **no more than 4 bullet points per slide**. If you are reading your slides aloud, you have too much text -- and you are triggering the redundancy effect.
 
 **Rule 3 -- Use visuals that carry meaning.**
 A marked-up site plan communicates more than a paragraph. A before/after photo pair is more persuasive than a table of numbers. Garr Reynolds, in *Presentation Zen*, argues that slides should be as visual as possible: "The verbal proof, evidence, and appeal comes mostly from your spoken word" -- the slide's job is to *support* visually, not to *duplicate* verbally.
@@ -185,11 +186,72 @@ Pick one font, one accent color, and one layout grid. Inconsistency signals care
 
 > **Key Insight:** The best CEM presentations look simple but are backed by rigorous data. The simplicity is the point -- it shows you understand the material well enough to distill it. As Reynolds writes: "Slides are slides. Documents are documents. They aren't the same thing." If your audience needs a detailed leave-behind, create a separate handout.
 
-*Sources: Sweller, J. (1988). "Cognitive load during problem solving: Effects on learning." Cognitive Science; Miller, G.A. (1956). "The Magical Number Seven, Plus or Minus Two." Psychological Review; [InnerDrive: PowerPoint Presentations and Cognitive Load](https://www.innerdrive.co.uk/blog/tracking-powerpoint-attention/); Reynolds, G. (2012). Presentation Zen. New Riders.*
+*Sources: Sweller, J. (1988). "Cognitive load during problem solving: Effects on learning." Cognitive Science; Miller, G.A. (1956). "The Magical Number Seven, Plus or Minus Two." Psychological Review; Cowan, N. (2001). "The Magical Number 4 in Short-Term Memory." Behavioral and Brain Sciences; Gunawan, F.E. et al. (2017). "An analysis of concentration region on PowerPoint slides using eye tracking." IEEE; Reynolds, G. (2012). Presentation Zen. New Riders.*
 
 ---
 
-### 3.3 Attention Is Not Constant -- Design for It
+### 3.3 Bad Slide vs. Good Slide: A Concrete Example
+
+Rules are abstract until you see them applied. Imagine you are presenting a schedule recovery plan at an OAC meeting. Here are two versions of the same slide.
+
+**Bad slide:**
+
+```
+SCHEDULE RECOVERY PLAN -- ZONE B CONCRETE
+
+- Zone B slab-on-grade is currently 14 calendar days behind the
+  baseline schedule due to unexpected rock encountered during
+  excavation at Grid Lines 5-7 requiring blasting that was not
+  in the original scope of work.
+- We propose to mobilize a second concrete crew from Titan
+  Concrete (8 workers) starting Monday Feb 10 to work Zones B
+  and C in parallel rather than sequentially.
+- The acceleration cost is estimated at $45,000 which includes
+  labor premium, additional formwork rental, and extended crane
+  time.
+- We also need to extend the tower crane rental by 2 weeks at
+  $4,200/week and add 3 electricians for temporary power.
+- If approved by Friday, we recover the 14 days by March 15.
+  If deferred, we lose another 5 days due to weather window.
+- See attached CPM update fragments on next 3 slides.
+```
+
+**What is wrong:**
+
+- **Wall of text** -- six dense bullet points, each multiple lines long. The audience stops listening and starts reading (violates Mayer's redundancy principle).
+- **No visual** -- a schedule recovery plan without a Gantt chart excerpt is like an RFI without a marked-up drawing.
+- **Multiple ideas** -- delay cause, recovery plan, cost breakdown, resource additions, deadline, and attachments are all crammed onto one slide (violates the segmenting principle).
+- **No clear hierarchy** -- the most important information (14 days behind, $45K to recover, decision needed by Friday) is buried in paragraphs.
+
+**Good slide:**
+
+```
+ZONE B: 14 DAYS BEHIND → RECOVERY BY MARCH 15
+
+[Marked-up Gantt chart showing: baseline vs. current vs.
+ recovery schedule for Zone B concrete activities]
+
+    Recovery action:    Add 2nd crew, parallel Zones B + C
+    Cost:               $45,000
+    Decision needed:    Friday, Feb 7
+
+    → If approved: recover 14 days by March 15
+    → If deferred: lose additional 5 days
+```
+
+**What is right:**
+
+- **One idea per slide** -- this slide answers one question: "What is the recovery plan and what do you need from us?"
+- **Visual anchor** -- the Gantt chart shows the problem and solution simultaneously (Mayer's spatial contiguity principle).
+- **Minimal text** -- four short lines plus the consequence. The presenter provides the verbal explanation.
+- **Clear hierarchy** -- the title states the situation, the chart shows the plan, and the three key numbers (cost, deadline, consequence) are immediately scannable.
+- **The details go elsewhere** -- the full cost breakdown, resource list, and CPM fragments go in a handout or backup slides.
+
+> **Key Insight:** The bad slide has more information. The good slide communicates more. In a 3-minute OAC window, the owner needs to understand the situation and make a decision -- not read a paragraph. Design your slides for the decision, not the documentation.
+
+---
+
+### 3.4 Attention Is Not Constant -- Design for It
 
 A common claim is that audience attention drops sharply after 10-15 minutes. The research is more nuanced than this. A review in *Advances in Physiology Education* (2016) found that **the greatest variability in audience attention comes from differences between presenters, not from a fixed time limit.** In other words, a compelling speaker can hold attention for 30 minutes; a poor speaker loses the room in 5.
 
@@ -231,13 +293,13 @@ The most counterintuitive finding in presentation anxiety research comes from Al
 Before you present, take three slow, deliberate breaths: 4 counts in through the nose, 6 counts out through the mouth. This is not a relaxation platitude -- it is a physiological intervention with strong research support:
 
 - Slow diaphragmatic breathing activates the **parasympathetic nervous system** (the body's "rest and digest" mode), counteracting the sympathetic "fight or flight" response that drives presentation anxiety.
-- Research has demonstrated that even a **single session of slow breathing significantly reduces blood pressure and increases heart rate variability (HRV)** -- a marker of stress resilience.
-- A 2017 study in *Frontiers in Psychology* (Ma et al.) found that diaphragmatic breathing training reduced cortisol levels and improved sustained attention in healthy adults.
-- A systematic review of 58 clinical trials confirmed that regulated breathing practices -- including slow diaphragmatic breathing -- led to **significant decreases in psychometric measures of stress and anxiety**.
+- A 2017 randomized controlled trial in *Frontiers in Psychology* (Ma et al.) found that an 8-week diaphragmatic breathing training program **significantly reduced cortisol levels and improved sustained attention** in healthy adults compared to controls.
+- A systematic review of **58 clinical trials** (Bentley et al., 2023, *Brain Sciences*) found that approximately **75% of breathing interventions** led to significant decreases in psychometric measures of stress and anxiety -- particularly those using slow-paced breathing over sessions of at least 5 minutes.
+- Perciavalle et al. (2017) found that a multi-session deep breathing protocol significantly reduced heart rate and cortisol in participants.
 
-Do this before you step up to present. Three breaths, four counts in, six counts out. It takes 30 seconds and measurably lowers your cortisol.
+Do this before you step up to present. Three breaths, four counts in, six counts out. It takes 30 seconds and activates the parasympathetic response.
 
-*Sources: Ma, X. et al. (2017). "The Effect of Diaphragmatic Breathing on Attention, Negative Affect and Stress in Healthy Adults." [Frontiers in Psychology](https://pmc.ncbi.nlm.nih.gov/articles/PMC5455070/); [PubMed: The role of deep breathing on stress (2017)](https://pubmed.ncbi.nlm.nih.gov/27995346/)*
+*Sources: Ma, X. et al. (2017). "The Effect of Diaphragmatic Breathing on Attention, Negative Affect and Stress in Healthy Adults." [Frontiers in Psychology](https://pmc.ncbi.nlm.nih.gov/articles/PMC5455070/); Bentley, T.G.K. et al. (2023). "Breathing Practices for Stress and Anxiety Reduction." [Brain Sciences, 13(12), 1612](https://pmc.ncbi.nlm.nih.gov/articles/PMC10741869/); Perciavalle, V. et al. (2017). "The role of deep breathing on stress." [Neurological Sciences, 38(3), 451-458](https://pubmed.ncbi.nlm.nih.gov/27995346/)*
 
 ---
 
@@ -273,7 +335,7 @@ Giving useful feedback is itself a communication skill -- and one that CEM profe
 
 Research confirms its value in higher education:
 
-- A meta-analysis on formative peer feedback found a **strong causal effect** on academic self-concept and performance (effect size d = 0.72 -- a large effect in educational research).
+- An experimental study found that structured peer feedback had a **strong causal effect on academic self-concept** (effect size d = 0.72), and a separate meta-analysis of 24 studies found that formative peer feedback improved writing performance with an even larger effect (g = 0.91).
 - Structured peer feedback improves both the *giver's* and the *receiver's* learning, because formulating feedback requires analyzing what worked and why.
 - However, research also shows that **peer feedback is a complex skill that requires explicit instruction.** Unstructured feedback ("good job," "I liked it") has minimal learning value. Structured protocols -- with rubrics and training -- produce significantly better outcomes.
 
@@ -361,11 +423,23 @@ Grading: Completion and depth of self-analysis. There is no "right answer" -- ho
 
 | # | Principle | Source |
 |---|-----------|--------|
-| 1 | 75% of people fear public speaking -- if you can present well, you have a rare competitive advantage | NIMH / public speaking research |
+| 1 | 29-40% of people report significant public speaking fear -- if you can present well, you have a genuine competitive advantage | Chapman University Survey, Gallup |
 | 2 | Hook-Problem-Solution-Ask: every CEM presentation follows four beats | Duarte, Gallo, adapted for CEM |
 | 3 | One idea per slide, never read your slides aloud (redundancy kills comprehension) | Mayer's multimedia learning research |
 | 4 | Say "I am excited" before presenting -- reframing beats suppression | Brooks (2014), Harvard Business School |
 | 5 | Strength-Question-Suggestion: the only peer feedback protocol you need | Educational research on structured feedback |
+
+---
+
+### What's Next -- Week 5 Preview
+
+This week we covered **verbal** communication (Strand A): structuring presentations, designing slides, managing anxiety, and delivering lightning talks. Next week we return to **written** communication (Strand B): technical writing and document control.
+
+- **What we will cover:** Principles of technical writing for construction documents -- clarity, precision, and contractual awareness. How to write daily reports, meeting minutes, and delay notices that can withstand legal scrutiny.
+- **Why it matters:** In disputes and claims, the quality of your contemporaneous written records often determines the outcome. A well-written daily report is worth more than a well-remembered conversation.
+- **Bring to class:** A sample daily report or meeting minutes from a project (real or simulated) -- we will workshop them in class.
+
+> **Reminder:** Your **self-assessment reflection** on today's lightning talk is due before the Week 5 session. Save as `project/reflections/week04_presentation_reflection.md`, commit, and push.
 
 ---
 
@@ -376,7 +450,7 @@ Grading: Completion and depth of self-analysis. There is no "right answer" -- ho
 - Duarte, N. (2010). *Resonate: Present Visual Stories that Transform Audiences.* Wiley. [resonatebook.com](https://www.resonatebook.com/)
 - Gallo, C. (2014). *Talk Like TED: The 9 Public-Speaking Secrets of the World's Top Minds.* St. Martin's Press.
 - Ma, X. et al. (2017). The effect of diaphragmatic breathing on attention, negative affect and stress in healthy adults. *Frontiers in Psychology, 8*, 874. [PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC5455070/)
-- Mayer, R.E. (2009). *Multimedia Learning* (2nd ed.). Cambridge University Press. [UCSD Multimedia Lab](https://multimedia.ucsd.edu/best-practices/multimedia-learning.html)
+- Mayer, R.E. (2020). *Multimedia Learning* (3rd ed.). Cambridge University Press. [UCSD Multimedia Lab](https://multimedia.ucsd.edu/best-practices/multimedia-learning.html)
 - Reynolds, G. (2012). *Presentation Zen: Simple Ideas on Presentation Design and Delivery* (2nd ed.). New Riders.
 - Bradbury, N.A. (2016). Attention span during lectures: 8 seconds, 10 minutes, or more? *Advances in Physiology Education, 40*(4), 509-513. [APS Journals](https://journals.physiology.org/doi/full/10.1152/advan.00109.2016)
 
