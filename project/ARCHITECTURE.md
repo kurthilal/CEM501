@@ -1,31 +1,43 @@
 # System Architecture
 
 **CEM501 Communication Skills for CEM -- Spring 2026**
-**Milestone M8 Deliverable (Final Integration)**
+**Milestone M5 Deliverable**
 
 ---
 
 ## System Overview
 
-This project implements a modular communication agent for construction management workflows. The agent can read incoming emails, classify and draft responses with LLM assistance, store contact + conversation history for continuity, and schedule follow-ups so communication does not depend on manual reminders. It also supports optional Telegram notifications for human-in-the-loop review, and a minimum cross-cultural adaptation layer via tone presets driven by contact metadata.
+[Write 2-3 sentences describing the overall purpose and design philosophy of your system. What problem does it solve? What are the key design principles (modularity, separation of concerns, etc.)?]
 
 ### Architecture Diagram
 
-```mermaid
-flowchart TD
-  Scheduler[scheduler.py] --> Agent[agent.py]
-  Agent --> Reader[reader.py]
-  Agent --> Classifier[classifier.py]
-  Agent --> Drafter[drafter.py]
-  Drafter --> Tone[tone.py]
-  Agent --> Sender[sender.py]
-  Agent --> Memory[memory.py]
-  Agent --> Telegram[telegram_channel.py]
-  Reader --> Memory
-  Classifier --> Memory
-  Sender --> Memory
-  Telegram --> Memory
 ```
+┌─────────────────────────────────────────────────────────┐
+│                      Scheduler                          │
+│               (runs pipeline on interval)               │
+└──────────────────────┬──────────────────────────────────┘
+                       │
+                       v
+┌──────────┐    ┌──────────────┐    ┌──────────────┐
+│  Reader  │───>│  Classifier  │───>│   Drafter    │
+│  (IMAP)  │    │   (LLM)      │    │   (LLM)      │
+└──────────┘    └──────────────┘    └──────┬───────┘
+                                          │
+                       ┌──────────────────┘
+                       v
+                ┌──────────────┐    ┌──────────────┐
+                │    Sender    │    │   Messenger   │
+                │   (SMTP)     │    │  (Telegram)   │
+                └──────────────┘    └──────────────┘
+                       │                    │
+                       v                    v
+                ┌──────────────────────────────────┐
+                │            Memory                │
+                │   (conversation history store)   │
+                └──────────────────────────────────┘
+```
+
+[Update this diagram to reflect your actual architecture. Add or remove components as needed.]
 
 ---
 
@@ -33,48 +45,33 @@ flowchart TD
 
 ### Reader
 **File:** `reader.py`
-**Responsibility:** Connects to IMAP, fetches recent emails, parses headers and body, and returns structured `EmailMessage` objects for the rest of the pipeline.
-**Key dependencies:** `imaplib` (stdlib), `python-dotenv`
+**Responsibility:** [Describe what this component does -- connects to IMAP server, fetches unread emails, parses headers and body, returns structured email objects.]
+**Key dependencies:** [e.g., imap_tools]
 
 ### Classifier
 **File:** `classifier.py`
-**Responsibility:** Uses Claude (Anthropic) to classify each email into `category` / `urgency` / `kind`. Falls back to simple keyword triage if the API key is missing or the call fails.
-**Key dependencies:** `anthropic`, `python-dotenv`
+**Responsibility:** [Describe what this component does -- takes a parsed email and uses an LLM to classify it by type (RFI, submittal, schedule update, etc.) and urgency (high, medium, low).]
+**Key dependencies:** [e.g., anthropic or openai]
 
 ### Drafter
 **File:** `drafter.py`
-**Responsibility:** Generates a context-aware draft reply using Claude, using (a) the classifier output, (b) recent message history from SQLite memory, and (c) a tone profile derived from contact metadata. Uses markdown templates in `templates/` as optional reference examples.
-**Key dependencies:** `anthropic`, `python-dotenv`
+**Responsibility:** [Describe what this component does -- takes a classified email and its conversation history, generates an appropriate draft response using an LLM with role-specific prompts.]
+**Key dependencies:** [e.g., anthropic or openai]
 
 ### Sender
 **File:** `sender.py`
-**Responsibility:** Sends the draft via SMTP (TLS). Supports “dry-run” mode upstream so sending can be disabled while still logging/storing drafts.
-**Key dependencies:** `smtplib` (stdlib), `python-dotenv`
+**Responsibility:** [Describe what this component does -- takes a finalized draft and sends it via SMTP, handles reply threading, CC lists, and delivery confirmation.]
+**Key dependencies:** [e.g., smtplib (standard library)]
 
 ### Memory
 **File:** `memory.py`
-**Responsibility:** SQLite-backed persistence (contacts, message_history, scheduled_tasks). Stores contact metadata (`culture_region`, `preferred_tone`) to enable tone adaptation.
-**Key dependencies:** `sqlite3` (stdlib)
+**Responsibility:** [Describe what this component does -- stores conversation threads, tracks email history per contact, provides context to the Drafter for follow-up emails.]
+**Key dependencies:** [e.g., json or sqlite3]
 
 ### Scheduler
 **File:** `scheduler.py`
-**Responsibility:** Runs the pipeline on a configurable interval, and checks due follow-ups each morning.
-**Key dependencies:** `schedule`
-
-### Cultural adaptation (tone/audience)
-**File:** `tone.py`
-**Responsibility:** Tone presets and greeting/sign-off templates selected from contact metadata (`preferred_tone`, `culture_region`). This is the minimum cross-cultural adaptation feature.
-**Key dependencies:** none
-
-### Orchestrator
-**File:** `agent.py`
-**Responsibility:** Orchestrates the end-to-end flow (read → classify → draft → optional telegram review notify → send/log → schedule follow-ups).
-**Key dependencies:** components above
-
-### Messenger (Telegram)
-**File:** `telegram_channel.py`
-**Responsibility:** Optional human-in-the-loop: posts drafts to a configured Telegram chat for review and logs the notification to memory.
-**Key dependencies:** `python-telegram-bot`, `python-dotenv`
+**Responsibility:** [Describe what this component does -- runs the read-classify-draft-send pipeline on a configurable interval, handles logging and error recovery.]
+**Key dependencies:** [e.g., schedule]
 
 ---
 
@@ -85,9 +82,9 @@ flowchart TD
 3. **Classifier** receives each email and calls the LLM API to determine email type and urgency.
 4. **Memory** is queried for any prior conversation context related to the sender or thread.
 5. **Drafter** receives the classified email plus conversation history and generates a draft response.
-6. [Optional] draft is sent to **Telegram** for human review notification.
-7. **Sender** dispatches the draft via SMTP (unless running in `--dry-run`).
-8. **Memory** stores received/sent history and scheduled follow-ups.
+6. [Optional: draft is sent to **Messenger** (Telegram) for human review/approval.]
+7. **Sender** dispatches the approved draft via SMTP.
+8. **Memory** stores the sent response for future context.
 
 ---
 
@@ -105,17 +102,17 @@ All secrets are stored in a `.env` file (never committed to version control). Se
 | `SMTP_SERVER` | Outgoing mail server address |
 | `SMTP_PORT` | SMTP port (typically 587 for TLS) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot for notifications/approval (if used) |
-| `TELEGRAM_CHAT_ID` | Telegram chat ID for review notifications (if used) |
-| `ANTHROPIC_MODEL` | Optional override for model name (default: `claude-3-5-sonnet-latest`) |
 
 ---
 
 ## Future Improvements
 
-- [ ] Add robust email threading (In-Reply-To/References) + Gmail labels for processed messages
-- [ ] Add attachment parsing (PDF extraction, image OCR)
-- [ ] Add a small review dashboard (web or TUI) for approving drafts
-- [ ] Expand cultural adaptation to multi-language and per-company style guides
+[List 2-4 improvements you would make if you had more time.]
+
+- [ ] [e.g., Add support for email attachments (PDF parsing, image OCR)]
+- [ ] [e.g., Implement a web dashboard for reviewing drafts]
+- [ ] [e.g., Add multi-language support for cross-cultural communication]
+- [ ] [e.g., Fine-tune classification with project-specific training data]
 
 ---
 

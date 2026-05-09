@@ -1,16 +1,16 @@
-from __future__ import annotations
-
 import imaplib
 import email
 from email.header import decode_header
-from email.utils import parseaddr, parsedate_to_datetime
 from html.parser import HTMLParser
 import os
 import re
 import sys
 from dotenv import load_dotenv
 
-from .contracts import EmailMessage
+load_dotenv()
+
+EMAIL_ADDRESS = os.environ["EMAIL_ADDRESS"]
+EMAIL_PASSWORD = os.environ["EMAIL_PASSWORD"]
 
 def decode_mime_str(value):
     parts = decode_header(value)
@@ -87,40 +87,11 @@ def _colorize(text: str, category: str) -> str:
         return text
     return f"{COLORS[category]}{text}{COLORS['RESET']}"
 
-def _load_email_config() -> tuple[str, str, str]:
-    load_dotenv()
-    email_address = os.environ["EMAIL_ADDRESS"]
-    email_password = os.environ["EMAIL_PASSWORD"]
-    imap_server = os.getenv("IMAP_SERVER", "imap.gmail.com")
-    return email_address, email_password, imap_server
 
-
-def _parse_from(sender_raw: str) -> tuple[str | None, str | None]:
-    name, addr = parseaddr(sender_raw)
-    name = decode_mime_str(name) if name else None
-    addr = addr or None
-    return name, addr
-
-
-def _parse_date(date_raw: str) -> "datetime | None":
-    if not date_raw:
-        return None
-    try:
-        dt = parsedate_to_datetime(date_raw)
-        # Normalize to naive UTC-ish for storage simplicity.
-        if getattr(dt, "tzinfo", None) is not None:
-            dt = dt.astimezone(None).replace(tzinfo=None)
-        return dt
-    except Exception:
-        return None
-
-
-def read_recent_emails(n: int = 20) -> list[EmailMessage]:
-    email_address, email_password, imap_server = _load_email_config()
-    messages: list[EmailMessage] = []
-
-    with imaplib.IMAP4_SSL(imap_server) as mail:
-        mail.login(email_address, email_password)
+def fetch_recent_emails(n=20):
+    rows = []
+    with imaplib.IMAP4_SSL("imap.gmail.com") as mail:
+        mail.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
         mail.select("INBOX")
 
         _, data = mail.search(None, "ALL")
@@ -132,42 +103,12 @@ def read_recent_emails(n: int = 20) -> list[EmailMessage]:
             raw = msg_data[0][1]
             msg = email.message_from_bytes(raw)
 
-            sender_raw = decode_mime_str(msg.get("From", ""))
-            subject = decode_mime_str(msg.get("Subject", "")) or ""
-            date_raw = msg.get("Date", "")
-            body_text = get_body_preview(msg, max_chars=10_000)
-            snippet = re.sub(r"\s+", " ", body_text).strip()[:200]
-
-            from_name, from_email = _parse_from(sender_raw)
-            message_id = msg.get("Message-ID")
-            raw_headers = {k: decode_mime_str(v) for k, v in msg.items()}
-            thread_key = (from_email or sender_raw) + "|" + subject
-
-            messages.append(
-                EmailMessage(
-                    message_id=message_id,
-                    from_email=from_email,
-                    from_name=from_name,
-                    subject=subject,
-                    date=_parse_date(date_raw),
-                    body_text=body_text,
-                    snippet=snippet,
-                    raw_headers=raw_headers,
-                    thread_key=thread_key,
-                )
-            )
-
-    return messages
-
-
-def fetch_recent_emails(n=20):
-    rows = []
-    for m in read_recent_emails(n=n):
-        sender = m.from_email or (m.from_name or "Unknown")
-        date = m.date.isoformat(sep=" ", timespec="seconds") if m.date else ""
-        category = triage_email(m.subject, sender)
-        preview = m.snippet
-        rows.append((category, sender, m.subject, date, preview))
+            sender = decode_mime_str(msg.get("From", ""))
+            subject = decode_mime_str(msg.get("Subject", ""))
+            date = msg.get("Date", "")
+            category = triage_email(subject, sender)
+            preview = get_body_preview(msg)
+            rows.append((category, sender, subject, date, preview))
 
     rows.sort(key=lambda r: CATEGORY_ORDER[r[0]])
 
