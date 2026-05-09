@@ -1,0 +1,11 @@
+
+2026-05-09 13:47:26,247 | INFO | test_scenarios | scenario=scenario_urgent.json category=URGENT urgency=high kind=general tone=neutral
+2026-05-09 13:47:26,248 | INFO | test_scenarios | draft_subject='Re: Incident report: near-miss at Zone B stairwell'
+2026-05-09 13:47:26,248 | INFO | test_scenarios | draft_body_preview='Hello Site Safety Officer,\n\nThanks for the message. I’ve reviewed it and will proceed once the following are confirmed:\n- Please confirm the required scope/standard and any applicable drawing/spec references.\n- Please confirm your required '
+2026-05-09 13:47:26,263 | INFO | test_scenarios | scenario=scenario_action_rfi.json category=ACTION urgency=medium kind=general tone=neutral
+2026-05-09 13:47:26,263 | INFO | test_scenarios | draft_subject='Re: RFI-S-012: Clarify finish standard at Zone B corridors'
+2026-05-09 13:47:26,263 | INFO | test_scenarios | draft_body_preview='Hello Architect of Record,\n\nThanks for the message. I’ve reviewed it and will proceed once the following are confirmed:\n- Please confirm the required scope/standard and any applicable drawing/spec references.\n- Please confirm your required '
+2026-05-09 13:47:26,275 | INFO | test_scenarios | scenario=scenario_fyi_update.json category=FYI urgency=medium kind=general tone=neutral
+2026-05-09 13:47:26,275 | INFO | test_scenarios | draft_subject='Re: Weekly update: Zone A steel progress'
+2026-05-09 13:47:26,275 | INFO | test_scenarios | draft_body_preview='Hello Owner Representative,\n\nThanks for the message. I’ve reviewed it and will proceed once the following are confirmed:\n- Please confirm the required scope/standard and any applicable drawing/spec references.\n- Please confirm your required'
+2026-05-09 13:47:26,275 | INFO | test_scenarios | done scenarios=3

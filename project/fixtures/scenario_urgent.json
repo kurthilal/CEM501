@@ -1,0 +1,7 @@
+{
+  "from_name": "Site Safety Officer",
+  "from_email": "safety.officer@example.com",
+  "subject": "Incident report: near-miss at Zone B stairwell",
+  "body_text": "We had a near-miss this morning at the Zone B stairwell due to debris obstructing egress. Please stop work in the area until housekeeping clears the path and confirm corrective actions. We need a written response today.",
+  "date": "2026-05-09T09:00:00"
+}
