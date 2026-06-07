@@ -17,7 +17,7 @@
         <span class="brand-sub">Agent dashboard</span>
       </div>
       <nav class="side-nav" role="navigation">
-        <button type="button" class="nav-item active" data-pane="overview">Overview</button>
+        <button type="button" class="nav-item active" data-pane="overview">Dashboard</button>
         <button type="button" class="nav-item" data-pane="classify">Classifier</button>
         <button type="button" class="nav-item" data-pane="draft">Drafter</button>
         <button type="button" class="nav-item" data-pane="pipeline">Full pipeline</button>
@@ -42,13 +42,63 @@
       </header>
 
       <section id="pane-overview" class="feature-pane panel intro-panel active" aria-labelledby="overview-heading">
-        <h2 id="overview-heading">Communication agent</h2>
-        <p>
-          Web UI for the <strong>demo</strong> package: classify messages (rules + optional Claude),
-          draft replies, run classify→draft, preview IMAP inbox, browse SQLite memory, and optionally send SMTP.
-          Same modules as <code>demo/classifier.py</code>, <code>demo/drafter.py</code>, <code>demo/reader.py</code>,
-          <code>demo/memory.py</code>, <code>demo/sender.py</code>. Scheduler and Telegram run from the terminal — see <strong>CLI reference</strong>.
-        </p>
+        <div class="dash-header">
+          <div>
+            <h2 id="overview-heading">Dashboard</h2>
+            <p class="hint dash-subtitle">Unread email, pending notifications, and Telegram chats awaiting a reply.</p>
+          </div>
+          <div class="dash-header-actions">
+            <span id="dash-updated" class="dash-updated" aria-live="polite"></span>
+            <button type="button" class="btn-text" id="btn-dashboard-refresh">Refresh</button>
+          </div>
+        </div>
+
+        <div class="dash-stats" aria-label="Summary counts">
+          <div class="dash-stat" id="stat-unread">
+            <span class="dash-stat-value" data-stat="unread">—</span>
+            <span class="dash-stat-label">Unread emails</span>
+          </div>
+          <div class="dash-stat" id="stat-notifications">
+            <span class="dash-stat-value" data-stat="notifications">—</span>
+            <span class="dash-stat-label">Notifications</span>
+          </div>
+          <div class="dash-stat" id="stat-telegram">
+            <span class="dash-stat-value" data-stat="telegram">—</span>
+            <span class="dash-stat-label">Waiting Telegram</span>
+          </div>
+        </div>
+
+        <div class="dash-grid">
+          <article class="dash-panel" aria-labelledby="dash-emails-heading">
+            <div class="dash-panel-head">
+              <h3 id="dash-emails-heading">Unread emails</h3>
+              <button type="button" class="btn-text dash-link" data-pane-link="inbox">Inbox preview →</button>
+            </div>
+            <div id="dash-emails" class="dash-list" aria-live="polite">
+              <p class="dash-empty">Loading…</p>
+            </div>
+          </article>
+
+          <article class="dash-panel" aria-labelledby="dash-notifications-heading">
+            <div class="dash-panel-head">
+              <h3 id="dash-notifications-heading">Notifications</h3>
+              <button type="button" class="btn-text dash-link" data-pane-link="memory">Memory →</button>
+            </div>
+            <div id="dash-notifications" class="dash-list" aria-live="polite">
+              <p class="dash-empty">Loading…</p>
+            </div>
+          </article>
+
+          <article class="dash-panel" aria-labelledby="dash-telegram-heading">
+            <div class="dash-panel-head">
+              <h3 id="dash-telegram-heading">Waiting Telegram</h3>
+              <button type="button" class="btn-text dash-link" data-pane-link="telegram">Open chat →</button>
+            </div>
+            <div id="dash-telegram" class="dash-list" aria-live="polite">
+              <p class="dash-empty">Loading…</p>
+            </div>
+          </article>
+        </div>
       </section>
 
       <section id="pane-classify" class="feature-pane panel" aria-labelledby="classify-heading">
@@ -137,8 +187,9 @@
       <section id="pane-telegram" class="feature-pane panel tg-pane" aria-labelledby="telegram-heading">
         <h2 id="telegram-heading">Telegram</h2>
         <p class="hint">
-          Run <code>python3 -m demo.test_bot</code> from <code>project/</code>. Photos are described with Claude when
-          <code>ANTHROPIC_API_KEY</code> is set; descriptions and tags are stored in SQLite. Pick a chat on the left to open the thread.
+          Run <code>python3 -m demo.test_bot</code> from <code>project/</code> to receive messages.
+          Reply from here when <code>WEB_ALLOW_SEND=1</code> and <code>TELEGRAM_BOT_TOKEN</code> are set in
+          <code>project/.env</code>.
         </p>
         <div class="tg-split" aria-live="polite">
           <aside class="tg-chat-list-panel">
@@ -158,6 +209,20 @@
               </div>
               <div id="tg-chat-wrap" class="tg-chat-wrap">
                 <div id="tg-chat-scroll" class="tg-chat-scroll"></div>
+              </div>
+              <div id="tg-composer" class="tg-composer">
+                <label for="tg-reply-text" class="tg-composer-label">Reply</label>
+                <textarea
+                  id="tg-reply-text"
+                  class="tg-reply-input"
+                  placeholder="Type a reply to send via the bot…"
+                  rows="3"
+                ></textarea>
+                <div class="tg-composer-actions">
+                  <button type="button" id="btn-tg-draft">Draft with AI</button>
+                  <button type="button" class="primary" id="btn-tg-send">Send</button>
+                </div>
+                <p id="tg-reply-status" class="tg-reply-status hint" aria-live="polite"></p>
               </div>
             </div>
           </div>
@@ -218,7 +283,7 @@ python3 -m demo.test_bot</pre>
   <script>
     (function () {
       var paneTitles = {
-        overview: "Overview",
+        overview: "Dashboard",
         classify: "Classifier",
         draft: "Drafter",
         pipeline: "Pipeline",
@@ -248,14 +313,21 @@ python3 -m demo.test_bot</pre>
             loadTelegramMessagesForChat();
           });
           startTelegramPoll();
+          stopDashboardPoll();
+        } else if (id === "overview") {
+          stopTelegramPoll();
+          loadDashboard();
+          startDashboardPoll();
         } else {
           stopTelegramPoll();
+          stopDashboardPoll();
         }
       }
 
       var allowed = ["overview", "classify", "draft", "pipeline", "inbox", "memory", "telegram", "send", "cli"];
 
       var telegramPollTimer = null;
+      var dashboardPollTimer = null;
 
       function escapeHtml(s) {
         return String(s)
@@ -279,6 +351,196 @@ python3 -m demo.test_bot</pre>
           if (titleEl) titleEl.textContent = "Chat " + selectedTelegramChatId;
         }
       }
+
+      function formatDashTime(isoOrStr) {
+        if (!isoOrStr) return "";
+        try {
+          var d = new Date(isoOrStr.replace(" ", "T") + "Z");
+          if (isNaN(d.getTime())) return String(isoOrStr);
+          return d.toLocaleString(undefined, {
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        } catch (e) {
+          return String(isoOrStr);
+        }
+      }
+
+      function renderDashEmpty(msg) {
+        return "<p class='dash-empty'>" + escapeHtml(msg) + "</p>";
+      }
+
+      function renderDashEmails(data) {
+        var block = data.unread_emails || {};
+        if (block.error) {
+          return renderDashEmpty("IMAP unavailable: " + block.error);
+        }
+        var items = block.items || [];
+        if (!items.length) return renderDashEmpty("No unread emails.");
+        var html = "<ul class='dash-items'>";
+        items.forEach(function (e) {
+          html +=
+            "<li class='dash-item'>" +
+            "<div class='dash-item-top'>" +
+            "<span class='dash-item-title'>" +
+            escapeHtml(e.subject || "(no subject)") +
+            "</span>" +
+            "<span class='dash-item-time'>" +
+            escapeHtml(formatDashTime(e.date)) +
+            "</span>" +
+            "</div>" +
+            "<div class='dash-item-meta'>" +
+            escapeHtml(e.from_addr || e.from_raw || "Unknown sender") +
+            "</div>" +
+            (e.preview
+              ? "<p class='dash-item-preview'>" + escapeHtml(e.preview) + "</p>"
+              : "") +
+            "</li>";
+        });
+        html += "</ul>";
+        return html;
+      }
+
+      function renderDashNotifications(data) {
+        var items = (data.notifications && data.notifications.items) || [];
+        if (!items.length) return renderDashEmpty("No pending notifications.");
+        var html = "<ul class='dash-items'>";
+        items.forEach(function (t) {
+          var overdue = false;
+          if (t.due_at) {
+            try {
+              var due = new Date(String(t.due_at).replace(" ", "T") + "Z");
+              overdue = !isNaN(due.getTime()) && due.getTime() < Date.now();
+            } catch (e) {}
+          }
+          html +=
+            "<li class='dash-item" +
+            (overdue ? " dash-item-overdue" : "") +
+            "'>" +
+            "<div class='dash-item-top'>" +
+            "<span class='dash-item-title'>" +
+            escapeHtml(t.description || "Task") +
+            "</span>" +
+            "<span class='dash-badge" +
+            (overdue ? " dash-badge-warn" : "") +
+            "'>" +
+            escapeHtml(overdue ? "Overdue" : "Pending") +
+            "</span>" +
+            "</div>" +
+            "<div class='dash-item-meta'>Due " +
+            escapeHtml(formatDashTime(t.due_at)) +
+            "</div>" +
+            "</li>";
+        });
+        html += "</ul>";
+        return html;
+      }
+
+      function renderDashTelegram(data) {
+        var items = (data.waiting_telegram && data.waiting_telegram.items) || [];
+        if (!items.length) return renderDashEmpty("No chats waiting for a reply.");
+        var html = "<ul class='dash-items'>";
+        items.forEach(function (c) {
+          html +=
+            "<li class='dash-item dash-item-clickable' data-chat-id='" +
+            c.chat_id +
+            "'>" +
+            "<div class='dash-item-top'>" +
+            "<span class='dash-item-title'>" +
+            escapeHtml(c.title || "Chat " + c.chat_id) +
+            "</span>" +
+            "<span class='dash-item-time'>" +
+            escapeHtml(formatDashTime(c.created_at)) +
+            "</span>" +
+            "</div>" +
+            "<div class='dash-item-meta'>" +
+            escapeHtml(c.message_type === "photo" ? "Photo message" : "Text message") +
+            "</div>" +
+            (c.preview
+              ? "<p class='dash-item-preview'>" + escapeHtml(c.preview) + "</p>"
+              : "") +
+            "</li>";
+        });
+        html += "</ul>";
+        return html;
+      }
+
+      function updateDashStats(data) {
+        var unread = (data.unread_emails && data.unread_emails.count) || 0;
+        var notif = (data.notifications && data.notifications.count) || 0;
+        var tg = (data.waiting_telegram && data.waiting_telegram.count) || 0;
+        document.querySelectorAll("[data-stat='unread']").forEach(function (el) {
+          el.textContent = String(unread);
+        });
+        document.querySelectorAll("[data-stat='notifications']").forEach(function (el) {
+          el.textContent = String(notif);
+        });
+        document.querySelectorAll("[data-stat='telegram']").forEach(function (el) {
+          el.textContent = String(tg);
+        });
+        ["stat-unread", "stat-notifications", "stat-telegram"].forEach(function (id, i) {
+          var counts = [unread, notif, tg];
+          var el = document.getElementById(id);
+          if (el) el.classList.toggle("has-items", counts[i] > 0);
+        });
+      }
+
+      async function loadDashboard() {
+        var emailsEl = document.getElementById("dash-emails");
+        var notifEl = document.getElementById("dash-notifications");
+        var tgEl = document.getElementById("dash-telegram");
+        var updatedEl = document.getElementById("dash-updated");
+        if (!emailsEl || !notifEl || !tgEl) return;
+        try {
+          var res = await fetch("/api/dashboard/summary");
+          var data = await res.json().catch(function () {
+            return {};
+          });
+          if (!res.ok) throw new Error(data.error || res.statusText || "Request failed");
+          updateDashStats(data);
+          emailsEl.innerHTML = renderDashEmails(data);
+          notifEl.innerHTML = renderDashNotifications(data);
+          tgEl.innerHTML = renderDashTelegram(data);
+          tgEl.querySelectorAll(".dash-item-clickable").forEach(function (li) {
+            li.onclick = function () {
+              selectedTelegramChatId = parseInt(li.getAttribute("data-chat-id"), 10);
+              selectPane("telegram");
+            };
+          });
+          if (updatedEl) {
+            updatedEl.textContent = "Updated " + new Date().toLocaleTimeString();
+          }
+        } catch (e) {
+          var err = renderDashEmpty(String(e.message || e));
+          emailsEl.innerHTML = err;
+          notifEl.innerHTML = err;
+          tgEl.innerHTML = err;
+        }
+      }
+
+      function startDashboardPoll() {
+        stopDashboardPoll();
+        dashboardPollTimer = setInterval(loadDashboard, 15000);
+      }
+
+      function stopDashboardPoll() {
+        if (dashboardPollTimer) {
+          clearInterval(dashboardPollTimer);
+          dashboardPollTimer = null;
+        }
+      }
+
+      document.querySelectorAll(".dash-link").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var pane = btn.getAttribute("data-pane-link");
+          if (pane) selectPane(pane);
+        });
+      });
+
+      var btnDashRefresh = document.getElementById("btn-dashboard-refresh");
+      if (btnDashRefresh) btnDashRefresh.onclick = loadDashboard;
 
       async function loadTelegramChatList() {
         var listEl = document.getElementById("tg-chat-list");
@@ -458,6 +720,89 @@ python3 -m demo.test_bot</pre>
         }
       }
 
+      async function sendTelegramReply() {
+        var textEl = document.getElementById("tg-reply-text");
+        var statusEl = document.getElementById("tg-reply-status");
+        var btn = document.getElementById("btn-tg-send");
+        if (!textEl || selectedTelegramChatId === null) return;
+        var text = textEl.value.trim();
+        if (!text) {
+          if (statusEl) statusEl.textContent = "Enter a message to send.";
+          return;
+        }
+        if (btn) btn.disabled = true;
+        if (statusEl) statusEl.textContent = "Sending…";
+        try {
+          await postJSON("/api/telegram/send", {
+            chat_id: selectedTelegramChatId,
+            text: text,
+          });
+          textEl.value = "";
+          if (statusEl) statusEl.textContent = "Sent.";
+          await loadTelegramMessagesForChat();
+          await loadTelegramChatList();
+        } catch (e) {
+          if (statusEl) statusEl.textContent = String(e.message || e);
+        } finally {
+          if (btn) btn.disabled = false;
+        }
+      }
+
+      async function draftTelegramReply() {
+        var textEl = document.getElementById("tg-reply-text");
+        var statusEl = document.getElementById("tg-reply-status");
+        var btn = document.getElementById("btn-tg-draft");
+        if (!textEl || selectedTelegramChatId === null) return;
+        if (btn) btn.disabled = true;
+        if (statusEl) statusEl.textContent = "Drafting…";
+        try {
+          var res = await fetch(
+            "/api/telegram/messages?limit=300&chat_id=" + encodeURIComponent(selectedTelegramChatId)
+          );
+          var data = await res.json().catch(function () {
+            return {};
+          });
+          if (!res.ok) throw new Error(data.error || res.statusText || "Request failed");
+          var msgs = data.messages || [];
+          var incoming = null;
+          for (var i = msgs.length - 1; i >= 0; i--) {
+            if (msgs[i].direction === "received") {
+              incoming = msgs[i];
+              break;
+            }
+          }
+          if (!incoming) throw new Error("No incoming message to draft from.");
+          var sourceText =
+            incoming.text_content ||
+            incoming.photo_llm_description ||
+            "";
+          if (!sourceText.trim()) throw new Error("Last incoming message has no text to draft from.");
+          var draftData = await postJSON("/api/pipeline", { text: sourceText });
+          textEl.value = draftData.draft || "";
+          if (statusEl) statusEl.textContent = "Draft ready (" + (draftData.category || "?") + "). Edit and send.";
+        } catch (e) {
+          if (statusEl) statusEl.textContent = String(e.message || e);
+        } finally {
+          if (btn) btn.disabled = false;
+        }
+      }
+
+      var btnTgSend = document.getElementById("btn-tg-send");
+      if (btnTgSend) btnTgSend.onclick = sendTelegramReply;
+
+      var btnTgDraft = document.getElementById("btn-tg-draft");
+      if (btnTgDraft) btnTgDraft.onclick = draftTelegramReply;
+
+      var tgReplyInput = document.getElementById("tg-reply-text");
+      if (tgReplyInput) {
+        tgReplyInput.addEventListener("keydown", function (ev) {
+          if ((ev.metaKey || ev.ctrlKey) && ev.key === "Enter") {
+            ev.preventDefault();
+            sendTelegramReply();
+          }
+        });
+      }
+
       document.querySelectorAll(".nav-item").forEach(function (btn) {
         btn.addEventListener("click", function () {
           selectPane(btn.getAttribute("data-pane"));
@@ -472,7 +817,8 @@ python3 -m demo.test_bot</pre>
       });
 
       var hash = (location.hash || "").replace(/^#/, "");
-      selectPane(allowed.indexOf(hash) >= 0 ? hash : "overview");
+      var initialPane = allowed.indexOf(hash) >= 0 ? hash : "overview";
+      selectPane(initialPane);
 
       async function postJSON(url, body) {
         const res = await fetch(url, {

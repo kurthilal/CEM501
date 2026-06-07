@@ -50,6 +50,59 @@ def health():
     return jsonify(ok=True, demo=str(_DEMO_DIR))
 
 
+@app.route("/api/dashboard/summary", methods=["GET"])
+def api_dashboard_summary():
+    """Aggregate unread emails, pending notifications, and waiting Telegram chats."""
+    email_limit = request.args.get("email_limit", default=10, type=int)
+    task_limit = request.args.get("task_limit", default=10, type=int)
+    tg_limit = request.args.get("tg_limit", default=10, type=int)
+    email_limit = max(1, min(email_limit, 30))
+    task_limit = max(1, min(task_limit, 50))
+    tg_limit = max(1, min(tg_limit, 30))
+
+    unread_emails: list[dict] = []
+    email_error: str | None = None
+    try:
+        from demo.reader import read_unread_emails
+
+        rows = read_unread_emails(n=email_limit)
+        for r in rows:
+            unread_emails.append(
+                {
+                    "subject": r.get("subject"),
+                    "from_addr": r.get("from_addr"),
+                    "from_raw": r.get("from_raw"),
+                    "date": r.get("date"),
+                    "preview": (r.get("preview") or "")[:300],
+                }
+            )
+    except Exception as exc:
+        email_error = str(exc)
+
+    from demo.memory import Memory
+
+    mem = Memory(db_path=_MEMORY_DB)
+    pending_tasks = mem.list_pending_tasks(limit=task_limit)
+    waiting_telegram = mem.list_waiting_telegram_chats(limit=tg_limit)
+
+    return jsonify(
+        ok=True,
+        unread_emails={
+            "count": len(unread_emails),
+            "items": unread_emails,
+            "error": email_error,
+        },
+        notifications={
+            "count": len(pending_tasks),
+            "items": pending_tasks,
+        },
+        waiting_telegram={
+            "count": len(waiting_telegram),
+            "items": waiting_telegram,
+        },
+    )
+
+
 @app.route("/api/classify", methods=["POST"])
 def api_classify():
     from demo.classifier import classify_email, classify_message
@@ -165,6 +218,55 @@ def api_telegram_chats():
     mem = Memory(db_path=_MEMORY_DB)
     chats = mem.list_telegram_chats()
     return jsonify(ok=True, chats=chats)
+
+
+@app.route("/api/telegram/send", methods=["POST"])
+def api_telegram_send():
+    """
+    Send a reply to a known Telegram chat from the web UI.
+    Requires ``WEB_ALLOW_SEND=1`` and ``TELEGRAM_BOT_TOKEN`` in ``project/.env``.
+    """
+    if os.getenv("WEB_ALLOW_SEND") != "1":
+        return jsonify(
+            ok=False,
+            error="Sending disabled. Set WEB_ALLOW_SEND=1 in project/.env to enable.",
+        ), 403
+
+    data = request.get_json(force=True, silent=True) or {}
+    text = (data.get("text") or "").strip()
+    raw_chat_id = data.get("chat_id")
+    if raw_chat_id is None or not text:
+        return jsonify(ok=False, error="Missing chat_id or text"), 400
+
+    try:
+        chat_id = int(raw_chat_id)
+    except (TypeError, ValueError):
+        return jsonify(ok=False, error="Invalid chat_id"), 400
+
+    from demo.memory import Memory
+
+    mem = Memory(db_path=_MEMORY_DB)
+    if not mem.telegram_chat_exists(chat_id):
+        return jsonify(ok=False, error="Unknown chat_id"), 404
+
+    try:
+        from demo.telegram_sender import send_telegram_message
+
+        message_ids = send_telegram_message(chat_id, text)
+    except Exception as exc:
+        return jsonify(ok=False, error=str(exc)), 400
+
+    row_id = mem.insert_telegram_message(
+        chat_id=chat_id,
+        user_id=None,
+        username="bot",
+        direction="sent",
+        message_type="text",
+        text_content=text,
+        telegram_message_id=message_ids[0] if message_ids else None,
+    )
+
+    return jsonify(ok=True, message_ids=message_ids, id=row_id)
 
 
 @app.route("/api/telegram/file", methods=["GET"])

@@ -288,6 +288,14 @@ class Memory:
                 continue
         return False
 
+    def telegram_chat_exists(self, chat_id: int) -> bool:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT 1 FROM telegram_messages WHERE chat_id = ? LIMIT 1",
+                (chat_id,),
+            ).fetchone()
+        return row is not None
+
     def list_telegram_chats(self) -> list[dict[str, Any]]:
         """One row per Telegram chat_id with counts and a short preview."""
         with self._connect() as conn:
@@ -351,6 +359,89 @@ class Memory:
                     }
                 )
             return out
+
+    def list_pending_tasks(self, limit: int = 20) -> list[dict[str, Any]]:
+        """Scheduled tasks still awaiting action (notifications)."""
+        limit = max(1, min(limit, 100))
+        with self._connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT id, description, due_at, contact_id, status, created_at
+                FROM scheduled_tasks
+                WHERE status = 'pending'
+                ORDER BY due_at ASC
+                LIMIT ?
+                """,
+                (limit,),
+            ).fetchall()
+        return [dict(r) for r in rows]
+
+    def list_waiting_telegram_chats(self, limit: int = 20) -> list[dict[str, Any]]:
+        """
+        Chats whose latest message is incoming (``received``) — awaiting a bot reply.
+        """
+        limit = max(1, min(limit, 100))
+        with self._connect() as conn:
+            agg = conn.execute(
+                """
+                SELECT chat_id, MAX(id) AS last_id
+                FROM telegram_messages
+                GROUP BY chat_id
+                """
+            ).fetchall()
+
+            waiting: list[dict[str, Any]] = []
+            for row in agg:
+                last = conn.execute(
+                    """
+                    SELECT id, chat_id, user_id, username, direction, message_type,
+                           text_content, photo_llm_description, created_at
+                    FROM telegram_messages
+                    WHERE id = ?
+                    """,
+                    (row["last_id"],),
+                ).fetchone()
+                if not last or last["direction"] != "received":
+                    continue
+
+                cid = int(last["chat_id"])
+                label_row = conn.execute(
+                    """
+                    SELECT username FROM telegram_messages
+                    WHERE chat_id = ?
+                      AND direction = 'received'
+                      AND username IS NOT NULL
+                      AND username != ''
+                    ORDER BY id DESC LIMIT 1
+                    """,
+                    (cid,),
+                ).fetchone()
+                uname = label_row["username"] if label_row else None
+                title = f"@{uname}" if uname else f"Chat {cid}"
+
+                preview_parts: list[str] = []
+                if last["message_type"] == "photo":
+                    preview_parts.append("Photo")
+                if last["text_content"]:
+                    preview_parts.append(str(last["text_content"])[:120])
+                elif last["photo_llm_description"]:
+                    preview_parts.append(str(last["photo_llm_description"])[:120])
+                preview = " · ".join(preview_parts) if preview_parts else "—"
+
+                waiting.append(
+                    {
+                        "chat_id": cid,
+                        "title": title,
+                        "username": uname or "",
+                        "message_type": last["message_type"],
+                        "preview": preview[:180],
+                        "created_at": last["created_at"],
+                        "message_id": int(last["id"]),
+                    }
+                )
+
+            waiting.sort(key=lambda x: str(x["created_at"]), reverse=True)
+            return waiting[:limit]
 
     def list_memory_feed(self, limit: int = 80) -> list[dict[str, Any]]:
         """Merge ``message_history`` and ``telegram_messages`` for the Memory UI."""

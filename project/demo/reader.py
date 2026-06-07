@@ -134,6 +134,43 @@ def read_recent_emails(n: int = 10) -> list[dict]:
     return out
 
 
+def read_unread_emails(n: int = 20) -> list[dict]:
+    """Fetch unread (UNSEEN) inbox messages via IMAP."""
+    out: list[dict] = []
+    with imaplib.IMAP4_SSL(IMAP_SERVER) as mail:
+        mail.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+        mail.select("INBOX")
+
+        _, data = mail.search(None, "UNSEEN")
+        unseen_ids = data[0].split() if data[0] else []
+        recent_ids = unseen_ids[-n:]
+
+        for uid in reversed(recent_ids):
+            _, msg_data = mail.fetch(uid, "(RFC822)")
+            raw = msg_data[0][1]
+            msg = email.message_from_bytes(raw)
+
+            from_raw = decode_mime_str(msg.get("From", ""))
+            _, from_addr = parseaddr(from_raw)
+            subject = decode_mime_str(msg.get("Subject", ""))
+            date = msg.get("Date", "")
+            body = get_body_preview(msg, max_chars=8000)
+            preview = get_body_preview(msg, max_chars=200)
+
+            out.append(
+                {
+                    "subject": subject,
+                    "body": body,
+                    "preview": preview,
+                    "from_addr": from_addr or None,
+                    "from_raw": from_raw,
+                    "date": date,
+                }
+            )
+
+    return out
+
+
 def fetch_recent_emails(n=20):
     rows = []
     with imaplib.IMAP4_SSL(IMAP_SERVER) as mail:
