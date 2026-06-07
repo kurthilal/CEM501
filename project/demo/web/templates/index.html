@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CEM501 Demo Agent — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/site.css') }}" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Features menu">
+      <div class="brand">
+        <strong class="brand-logo">CEM501</strong>
+        <span class="brand-sub">Agent dashboard</span>
+      </div>
+      <nav class="side-nav" role="navigation">
+        <button type="button" class="nav-item active" data-pane="overview">Overview</button>
+        <button type="button" class="nav-item" data-pane="classify">Classifier</button>
+        <button type="button" class="nav-item" data-pane="draft">Drafter</button>
+        <button type="button" class="nav-item" data-pane="pipeline">Full pipeline</button>
+        <button type="button" class="nav-item" data-pane="inbox">Inbox preview</button>
+        <button type="button" class="nav-item" data-pane="memory">Memory (SQLite)</button>
+        <button type="button" class="nav-item" data-pane="telegram">Telegram chat</button>
+        <button type="button" class="nav-item" data-pane="send">SMTP send</button>
+        <button type="button" class="nav-item" data-pane="cli">CLI reference</button>
+      </nav>
+    </aside>
+
+    <div class="main">
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <span class="crumb">CEM501</span>
+          <span class="crumb-sep">›</span>
+          <span class="crumb-strong" id="crumb-pane">Overview</span>
+        </div>
+        <div class="top-bar-right">
+          <span class="top-badge">Local</span>
+        </div>
+      </header>
+
+      <section id="pane-overview" class="feature-pane panel intro-panel active" aria-labelledby="overview-heading">
+        <h2 id="overview-heading">Communication agent</h2>
+        <p>
+          Web UI for the <strong>demo</strong> package: classify messages (rules + optional Claude),
+          draft replies, run classify→draft, preview IMAP inbox, browse SQLite memory, and optionally send SMTP.
+          Same modules as <code>demo/classifier.py</code>, <code>demo/drafter.py</code>, <code>demo/reader.py</code>,
+          <code>demo/memory.py</code>, <code>demo/sender.py</code>. Scheduler and Telegram run from the terminal — see <strong>CLI reference</strong>.
+        </p>
+      </section>
+
+      <section id="pane-classify" class="feature-pane panel" aria-labelledby="classify-heading">
+        <h2 id="classify-heading">Classifier</h2>
+        <p class="hint">Returns URGENT / ACTION / FYI / ARCHIVE. Uses Anthropic when <code>ANTHROPIC_API_KEY</code> is set in <code>project/.env</code>; otherwise keyword rules from <code>demo.reader.triage_email</code>.</p>
+        <label for="cls-text">Message text</label>
+        <textarea id="cls-text" placeholder="Paste email body or Telegram message…"></textarea>
+        <div class="row two" style="margin-top:0.75rem">
+          <div>
+            <label for="cls-subject">Subject (optional)</label>
+            <input type="text" id="cls-subject" placeholder="RFI-042 …" />
+          </div>
+          <div>
+            <label for="cls-sender">Sender hint (optional)</label>
+            <input type="text" id="cls-sender" placeholder="engineer@firm.com" />
+          </div>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="primary" id="btn-classify">Classify</button>
+        </div>
+        <div id="cls-out" class="out" aria-live="polite"></div>
+      </section>
+
+      <section id="pane-draft" class="feature-pane panel" aria-labelledby="draft-heading">
+        <h2 id="draft-heading">Drafter</h2>
+        <p class="hint">Generates a plain-text reply (Claude if API key present; else templates).</p>
+        <label for="dr-text">Incoming text</label>
+        <textarea id="dr-text"></textarea>
+        <div class="row two" style="margin-top:0.75rem">
+          <div>
+            <label for="dr-category">Category</label>
+            <select id="dr-category">
+              <option>URGENT</option>
+              <option>ACTION</option>
+              <option>FYI</option>
+              <option>ARCHIVE</option>
+            </select>
+          </div>
+          <div>
+            <label for="dr-subject">Subject (optional, email-style)</label>
+            <input type="text" id="dr-subject" />
+          </div>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="primary" id="btn-draft">Draft reply</button>
+        </div>
+        <div id="dr-out" class="out" aria-live="polite"></div>
+      </section>
+
+      <section id="pane-pipeline" class="feature-pane panel" aria-labelledby="pipeline-heading">
+        <h2 id="pipeline-heading">Full pipeline</h2>
+        <p class="hint">One click: classify → draft (same as scheduler logic without persisting here).</p>
+        <label for="pl-text">Message</label>
+        <textarea id="pl-text"></textarea>
+        <div class="row two" style="margin-top:0.75rem">
+          <div>
+            <label for="pl-subject">Subject (optional)</label>
+            <input type="text" id="pl-subject" />
+          </div>
+          <div>
+            <label for="pl-sender">Sender (optional)</label>
+            <input type="text" id="pl-sender" />
+          </div>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="primary" id="btn-pipeline">Run pipeline</button>
+        </div>
+        <div id="pl-out" class="out" aria-live="polite"></div>
+      </section>
+
+      <section id="pane-inbox" class="feature-pane panel" aria-labelledby="inbox-heading">
+        <h2 id="inbox-heading">Inbox preview</h2>
+        <p class="hint">Calls <code>demo.reader.read_recent_emails</code> (IMAP). Requires valid <code>EMAIL_*</code> in <code>project/.env</code>.</p>
+        <div class="row two">
+          <div>
+            <label for="in-n">Number of messages</label>
+            <input type="number" id="in-n" value="5" min="1" max="50" />
+          </div>
+          <div style="display:flex; align-items:flex-end">
+            <button type="button" class="primary" id="btn-inbox">Fetch</button>
+          </div>
+        </div>
+        <div id="in-out" class="out" aria-live="polite"></div>
+      </section>
+
+      <section id="pane-telegram" class="feature-pane panel tg-pane" aria-labelledby="telegram-heading">
+        <h2 id="telegram-heading">Telegram</h2>
+        <p class="hint">
+          Run <code>python3 -m demo.test_bot</code> from <code>project/</code>. Photos are described with Claude when
+          <code>ANTHROPIC_API_KEY</code> is set; descriptions and tags are stored in SQLite. Pick a chat on the left to open the thread.
+        </p>
+        <div class="tg-split" aria-live="polite">
+          <aside class="tg-chat-list-panel">
+            <div class="tg-chat-list-head">
+              <span>Active chats</span>
+              <button type="button" class="btn-text" id="btn-telegram-refresh">Refresh</button>
+            </div>
+            <div id="tg-chat-list" class="tg-chat-list"></div>
+          </aside>
+          <div class="tg-detail-panel">
+            <div id="tg-detail-empty" class="tg-detail-placeholder">
+              Select a chat to view messages and photos.
+            </div>
+            <div id="tg-chat-detail" class="tg-chat-detail hidden">
+              <div class="tg-detail-toolbar">
+                <span id="tg-detail-title" class="tg-detail-title"></span>
+              </div>
+              <div id="tg-chat-wrap" class="tg-chat-wrap">
+                <div id="tg-chat-scroll" class="tg-chat-scroll"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p id="tg-status" class="tg-status hint"></p>
+      </section>
+
+      <section id="pane-memory" class="feature-pane panel" aria-labelledby="memory-heading">
+        <h2 id="memory-heading">Memory (SQLite)</h2>
+        <p class="hint">
+          Reads <code>demo/memory/memory.db</code>. <strong>Load messages</strong> loads email/agent rows and Telegram rows in two separate tables.
+        </p>
+        <div class="btn-row">
+          <button type="button" id="btn-msg">Load messages</button>
+          <button type="button" id="btn-tasks">Load scheduled tasks</button>
+          <button type="button" id="btn-contacts">Load contacts</button>
+        </div>
+        <div id="mem-out" class="out" style="padding:0;border:none;background:transparent"></div>
+      </section>
+
+      <section id="pane-send" class="feature-pane panel" aria-labelledby="send-heading">
+        <h2 id="send-heading">SMTP send (optional)</h2>
+        <p class="hint">Disabled by default. Set <code>WEB_ALLOW_SEND=1</code> in <code>project/.env</code> to enable — only use on a trusted machine.</p>
+        <div class="row two">
+          <div>
+            <label for="sd-to">To</label>
+            <input type="text" id="sd-to" placeholder="recipient@example.com" />
+          </div>
+          <div>
+            <label for="sd-subject">Subject</label>
+            <input type="text" id="sd-subject" />
+          </div>
+        </div>
+        <label for="sd-body">Body</label>
+        <textarea id="sd-body"></textarea>
+        <div class="btn-row">
+          <button type="button" class="primary" id="btn-send">Send email</button>
+        </div>
+        <div id="sd-out" class="out" aria-live="polite"></div>
+      </section>
+
+      <section id="pane-cli" class="feature-pane panel" aria-labelledby="cli-heading">
+        <h2 id="cli-heading">Scheduler &amp; Telegram (CLI)</h2>
+        <p class="hint">These are not started by the web server — run from <code>project/</code>:</p>
+        <pre class="cli">cd project
+python3 -m demo.scheduler --once --dry-run --max-emails 5
+python3 -m demo.scheduler --dry-run --interval-mins 10
+python3 -m demo.test_bot</pre>
+        <p class="hint">Architecture &amp; env vars: <code>project/demo/ARCHITECTURE.md</code>.</p>
+      </section>
+
+      <footer class="app-footer">
+        Local dashboard · bind <code>127.0.0.1</code> · do not expose without authentication.
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var paneTitles = {
+        overview: "Overview",
+        classify: "Classifier",
+        draft: "Drafter",
+        pipeline: "Pipeline",
+        inbox: "Inbox",
+        memory: "Memory",
+        telegram: "Telegram",
+        send: "SMTP",
+        cli: "CLI",
+      };
+
+      var selectedTelegramChatId = null;
+
+      function selectPane(id) {
+        document.querySelectorAll(".feature-pane").forEach(function (p) {
+          p.classList.toggle("active", p.id === "pane-" + id);
+        });
+        document.querySelectorAll(".nav-item").forEach(function (b) {
+          b.classList.toggle("active", b.getAttribute("data-pane") === id);
+        });
+        var crumb = document.getElementById("crumb-pane");
+        if (crumb) crumb.textContent = paneTitles[id] || id;
+        try {
+          history.replaceState(null, "", "#" + id);
+        } catch (e) {}
+        if (id === "telegram") {
+          loadTelegramChatList().then(function () {
+            loadTelegramMessagesForChat();
+          });
+          startTelegramPoll();
+        } else {
+          stopTelegramPoll();
+        }
+      }
+
+      var allowed = ["overview", "classify", "draft", "pipeline", "inbox", "memory", "telegram", "send", "cli"];
+
+      var telegramPollTimer = null;
+
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function updateTelegramDetailVisibility() {
+        var emptyEl = document.getElementById("tg-detail-empty");
+        var detailEl = document.getElementById("tg-chat-detail");
+        var titleEl = document.getElementById("tg-detail-title");
+        if (!emptyEl || !detailEl) return;
+        if (selectedTelegramChatId === null) {
+          emptyEl.classList.remove("hidden");
+          detailEl.classList.add("hidden");
+        } else {
+          emptyEl.classList.add("hidden");
+          detailEl.classList.remove("hidden");
+          if (titleEl) titleEl.textContent = "Chat " + selectedTelegramChatId;
+        }
+      }
+
+      async function loadTelegramChatList() {
+        var listEl = document.getElementById("tg-chat-list");
+        var statusEl = document.getElementById("tg-status");
+        if (!listEl) return;
+        try {
+          var res = await fetch("/api/telegram/chats");
+          var data = await res.json().catch(function () {
+            return {};
+          });
+          if (!res.ok) throw new Error(data.error || res.statusText || "Request failed");
+          var chats = data.chats || [];
+          if (!chats.length) {
+            listEl.innerHTML =
+              "<p class='tg-list-empty'>No chats yet. Send a message or photo to the bot.</p>";
+            selectedTelegramChatId = null;
+            updateTelegramDetailVisibility();
+            if (statusEl) statusEl.textContent = "";
+            return;
+          }
+          if (
+            selectedTelegramChatId !== null &&
+            !chats.some(function (x) {
+              return x.chat_id === selectedTelegramChatId;
+            })
+          ) {
+            selectedTelegramChatId = chats[0].chat_id;
+          }
+          if (selectedTelegramChatId === null) {
+            selectedTelegramChatId = chats[0].chat_id;
+          }
+          var html = "";
+          chats.forEach(function (c) {
+            var active = selectedTelegramChatId === c.chat_id ? " is-active" : "";
+            html +=
+              "<button type='button' class='tg-chat-row" +
+              active +
+              "' data-chat-id='" +
+              c.chat_id +
+              "'>" +
+              "<span class='tg-chat-row-title'>" +
+              escapeHtml(c.title || "") +
+              "</span>" +
+              "<span class='tg-chat-row-meta'>" +
+              escapeHtml(String(c.message_count)) +
+              " msgs · " +
+              escapeHtml(String(c.photo_count)) +
+              " photos</span>" +
+              "<span class='tg-chat-row-preview'>" +
+              escapeHtml(c.preview || "") +
+              "</span>" +
+              "<span class='tg-chat-row-time'>" +
+              escapeHtml(c.last_activity || "") +
+              "</span>" +
+              "</button>";
+          });
+          listEl.innerHTML = html;
+          listEl.querySelectorAll(".tg-chat-row").forEach(function (btn) {
+            btn.onclick = function () {
+              selectedTelegramChatId = parseInt(btn.getAttribute("data-chat-id"), 10);
+              loadTelegramChatList().then(function () {
+                loadTelegramMessagesForChat();
+              });
+            };
+          });
+        } catch (e) {
+          listEl.innerHTML = "<p class='tg-list-empty err'>" + escapeHtml(String(e.message || e)) + "</p>";
+        }
+      }
+
+      async function loadTelegramMessagesForChat() {
+        var scrollEl = document.getElementById("tg-chat-scroll");
+        var statusEl = document.getElementById("tg-status");
+        updateTelegramDetailVisibility();
+        if (!scrollEl || !statusEl) return;
+        if (selectedTelegramChatId === null) {
+          scrollEl.innerHTML = "";
+          statusEl.textContent = "";
+          return;
+        }
+        statusEl.textContent = "Loading…";
+        try {
+          var res = await fetch(
+            "/api/telegram/messages?limit=300&chat_id=" + encodeURIComponent(selectedTelegramChatId)
+          );
+          var data = await res.json().catch(function () {
+            return {};
+          });
+          if (!res.ok) throw new Error(data.error || res.statusText || "Request failed");
+          var msgs = data.messages || [];
+          if (!msgs.length) {
+            scrollEl.innerHTML = "<p class='tg-empty'>No messages in this chat yet.</p>";
+            statusEl.textContent = "0 messages.";
+            return;
+          }
+          var html = "";
+          msgs.forEach(function (m) {
+            var outgoing = m.direction === "sent";
+            var rowCls = "tg-row " + (outgoing ? "tg-row-out" : "tg-row-in");
+            var bubbleCls = "tg-bubble " + (outgoing ? "tg-bubble-out" : "tg-bubble-in");
+            var who =
+              outgoing
+                ? "Assistant"
+                : (m.username ? "@" + m.username : "User") +
+                  (m.user_id != null ? " · id " + m.user_id : "");
+            var meta =
+              "<div class='tg-meta'>" +
+              escapeHtml(who) +
+              " · " +
+              escapeHtml(m.created_at || "") +
+              (m.telegram_message_id != null
+                ? " · msg " + escapeHtml(String(m.telegram_message_id))
+                : "") +
+              "</div>";
+
+            var bodyHtml = "";
+            if (m.message_type === "photo" && m.photo_file_ids && m.photo_file_ids.length) {
+              bodyHtml += "<div class='tg-photo-strip'>";
+              m.photo_file_ids.forEach(function (fid) {
+                var src = "/api/telegram/file?file_id=" + encodeURIComponent(fid);
+                bodyHtml +=
+                  "<a class='tg-photo-link' href='" +
+                  src +
+                  "' target='_blank' rel='noopener'><img src='" +
+                  src +
+                  "' alt='Telegram photo' loading='lazy' /></a>";
+              });
+              bodyHtml += "</div>";
+            }
+            if (m.text_content) {
+              bodyHtml +=
+                "<div class='tg-text'>" + escapeHtml(m.text_content).replace(/\n/g, "<br />") + "</div>";
+            }
+            if (m.photo_llm_description) {
+              bodyHtml +=
+                "<div class='tg-vision'><strong>AI description</strong><br />" +
+                escapeHtml(m.photo_llm_description).replace(/\n/g, "<br />") +
+                "</div>";
+            }
+            if (m.photo_tags && m.photo_tags.length) {
+              bodyHtml += "<div class='tg-tags'>";
+              m.photo_tags.forEach(function (t) {
+                bodyHtml += "<span class='tg-chip'>" + escapeHtml(String(t)) + "</span>";
+              });
+              bodyHtml += "</div>";
+            }
+            if (!bodyHtml) {
+              bodyHtml = "<div class='tg-text tg-muted'>(empty)</div>";
+            }
+
+            html += "<div class='" + rowCls + "'><div class='" + bubbleCls + "'>" + meta + bodyHtml + "</div></div>";
+          });
+          scrollEl.innerHTML = html;
+          scrollEl.scrollTop = scrollEl.scrollHeight;
+          statusEl.textContent = msgs.length + " message(s).";
+        } catch (e) {
+          scrollEl.innerHTML = "";
+          statusEl.textContent = String(e.message || e);
+        }
+      }
+
+      function refreshTelegramPane() {
+        loadTelegramChatList().then(function () {
+          loadTelegramMessagesForChat();
+        });
+      }
+
+      function startTelegramPoll() {
+        stopTelegramPoll();
+        telegramPollTimer = setInterval(refreshTelegramPane, 5000);
+      }
+
+      function stopTelegramPoll() {
+        if (telegramPollTimer) {
+          clearInterval(telegramPollTimer);
+          telegramPollTimer = null;
+        }
+      }
+
+      document.querySelectorAll(".nav-item").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          selectPane(btn.getAttribute("data-pane"));
+        });
+      });
+
+      window.addEventListener("hashchange", function () {
+        var h = (location.hash || "").replace(/^#/, "");
+        if (allowed.indexOf(h) >= 0) {
+          selectPane(h);
+        }
+      });
+
+      var hash = (location.hash || "").replace(/^#/, "");
+      selectPane(allowed.indexOf(hash) >= 0 ? hash : "overview");
+
+      async function postJSON(url, body) {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || res.statusText || "Request failed");
+        return data;
+      }
+
+      function setOut(el, text, ok) {
+        el.textContent = text;
+        el.classList.toggle("ok", !!ok);
+        el.classList.toggle("err", !ok);
+      }
+
+      document.getElementById("btn-classify").onclick = async () => {
+        const out = document.getElementById("cls-out");
+        out.textContent = "…";
+        try {
+          const data = await postJSON("/api/classify", {
+            text: document.getElementById("cls-text").value,
+            subject: document.getElementById("cls-subject").value,
+            sender: document.getElementById("cls-sender").value,
+          });
+          setOut(out, "Category: " + data.category, true);
+        } catch (e) {
+          setOut(out, String(e.message || e), false);
+        }
+      };
+
+      document.getElementById("btn-draft").onclick = async () => {
+        const out = document.getElementById("dr-out");
+        out.textContent = "…";
+        try {
+          const data = await postJSON("/api/draft", {
+            text: document.getElementById("dr-text").value,
+            category: document.getElementById("dr-category").value,
+            subject: document.getElementById("dr-subject").value,
+          });
+          setOut(out, data.draft || "", true);
+        } catch (e) {
+          setOut(out, String(e.message || e), false);
+        }
+      };
+
+      document.getElementById("btn-pipeline").onclick = async () => {
+        const out = document.getElementById("pl-out");
+        out.textContent = "…";
+        try {
+          const data = await postJSON("/api/pipeline", {
+            text: document.getElementById("pl-text").value,
+            subject: document.getElementById("pl-subject").value,
+            sender: document.getElementById("pl-sender").value,
+          });
+          const badge = data.category || "?";
+          setOut(out, "[" + badge + "]\n\n" + (data.draft || ""), true);
+        } catch (e) {
+          setOut(out, String(e.message || e), false);
+        }
+      };
+
+      document.getElementById("btn-inbox").onclick = async () => {
+        const out = document.getElementById("in-out");
+        out.textContent = "Loading…";
+        const n = document.getElementById("in-n").value || "5";
+        try {
+          const res = await fetch("/api/inbox?n=" + encodeURIComponent(n));
+          const data = await res.json();
+          if (!data.ok) throw new Error(data.error || "Failed");
+          const lines = (data.emails || []).map(
+            (e, i) =>
+              (i + 1) +
+              ". " +
+              (e.subject || "(no subject)") +
+              "\n   From: " +
+              (e.from_addr || e.from_raw || "?") +
+              "\n   " +
+              (e.preview || "").slice(0, 200)
+          );
+          setOut(out, lines.join("\n\n") || "(empty)", true);
+        } catch (e) {
+          setOut(out, String(e.message || e), false);
+        }
+      };
+
+      function renderTable(rows, cols, maxCellLen) {
+        maxCellLen = maxCellLen || 120;
+        if (!rows.length) return "<p style='color:var(--muted)'>No rows.</p>";
+        let h = "<table class='data'><thead><tr>";
+        cols.forEach((c) => (h += "<th>" + c + "</th>"));
+        h += "</tr></thead><tbody>";
+        rows.forEach((r) => {
+          h += "<tr>";
+          cols.forEach((c) => {
+            let v = r[c];
+            if (v === null || v === undefined) v = "";
+            if (Array.isArray(v)) v = v.join(", ");
+            if (String(v).length > maxCellLen) v = String(v).slice(0, maxCellLen) + "…";
+            h += "<td>" + String(v).replace(/</g, "&lt;") + "</td>";
+          });
+          h += "</tr>";
+        });
+        h += "</tbody></table>";
+        return h;
+      }
+
+      document.getElementById("btn-msg").onclick = async () => {
+        const el = document.getElementById("mem-out");
+        el.innerHTML = "Loading…";
+        try {
+          const res = await fetch("/api/memory/messages?limit=60");
+          const data = await res.json();
+          let html = "";
+          html += "<h3 class='mem-section-title'>Email / agent log (<code>message_history</code>)</h3>";
+          html += renderTable(data.messages || [], [
+            "id",
+            "direction",
+            "subject",
+            "channel",
+            "sent_at",
+            "body_preview",
+          ]);
+          html += "<h3 class='mem-section-title'>Telegram (<code>telegram_messages</code>)</h3>";
+          html += renderTable(
+            data.telegram_messages || [],
+            [
+              "id",
+              "chat_id",
+              "direction",
+              "message_type",
+              "created_at",
+              "username",
+              "text_preview",
+              "photo_description",
+              "tags",
+            ],
+            200
+          );
+          el.innerHTML = html;
+        } catch (e) {
+          el.innerHTML = "<p class='err'>" + String(e) + "</p>";
+        }
+      };
+
+      document.getElementById("btn-tasks").onclick = async () => {
+        const el = document.getElementById("mem-out");
+        el.innerHTML = "Loading…";
+        try {
+          const res = await fetch("/api/memory/tasks?limit=50");
+          const data = await res.json();
+          el.innerHTML = renderTable(data.tasks || [], [
+            "id",
+            "status",
+            "due_at",
+            "description",
+            "contact_id",
+          ]);
+        } catch (e) {
+          el.innerHTML = "<p class='err'>" + String(e) + "</p>";
+        }
+      };
+
+      document.getElementById("btn-contacts").onclick = async () => {
+        const el = document.getElementById("mem-out");
+        el.innerHTML = "Loading…";
+        try {
+          const res = await fetch("/api/memory/contacts?limit=50");
+          const data = await res.json();
+          el.innerHTML = renderTable(data.contacts || [], [
+            "id",
+            "name",
+            "email",
+            "role",
+            "company",
+          ]);
+        } catch (e) {
+          el.innerHTML = "<p class='err'>" + String(e) + "</p>";
+        }
+      };
+
+      document.getElementById("btn-telegram-refresh").onclick = refreshTelegramPane;
+
+      document.getElementById("btn-send").onclick = async () => {
+        const out = document.getElementById("sd-out");
+        out.textContent = "…";
+        try {
+          const data = await postJSON("/api/send", {
+            to: document.getElementById("sd-to").value,
+            subject: document.getElementById("sd-subject").value,
+            body: document.getElementById("sd-body").value,
+          });
+          setOut(out, data.ok ? "Sent." : JSON.stringify(data), data.ok);
+        } catch (e) {
+          setOut(out, String(e.message || e), false);
+        }
+      };
+    })();
+  </script>
+</body>
+</html>

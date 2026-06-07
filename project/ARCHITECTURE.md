@@ -3,6 +3,9 @@
 **CEM501 Communication Skills for CEM -- Spring 2026**
 **Milestone M5 Deliverable**
 
+> **Implementation note:** The runnable agent code lives in the **`demo/`** package. See **[`demo/ARCHITECTURE.md`](demo/ARCHITECTURE.md)** for file paths, run commands (`python3 -m demo.scheduler`, `python3 -m demo.test_bot`), and dependencies.  
+> Root **`reader.py`** and **`test_bot.py`** are thin shims that delegate to `demo`.
+
 ---
 
 ## System Overview

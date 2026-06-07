@@ -6,3 +6,4 @@ schedule
 python-dotenv
 rich
 httpx
+flask>=3.0
