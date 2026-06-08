@@ -14,6 +14,29 @@ TelegramMsgType = Literal["text", "photo"]
 Direction = Literal["sent", "received"]
 TaskStatus = Literal["pending", "done", "skipped"]
 
+CRM_PIPELINE_STAGES: tuple[str, ...] = (
+    "cold_call",
+    "meeting",
+    "demo",
+    "offer",
+    "accepted",
+)
+DEFAULT_CRM_PIPELINE_STAGE = "cold_call"
+CrmPipelineStage = Literal[
+    "cold_call", "meeting", "demo", "offer", "accepted"
+]
+
+
+def normalize_crm_pipeline_stage(stage: str | None) -> str:
+    raw = (stage or "").strip().lower().replace("-", "_").replace(" ", "_")
+    if raw in CRM_PIPELINE_STAGES:
+        return raw
+    aliases = {
+        "coldcall": "cold_call",
+        "cold": "cold_call",
+    }
+    return aliases.get(raw, DEFAULT_CRM_PIPELINE_STAGE)
+
 
 class Memory:
     def __init__(self, db_path: str | Path | None = None) -> None:
@@ -81,9 +104,135 @@ class Memory:
                 );
                 CREATE INDEX IF NOT EXISTS idx_tg_chat_created
                     ON telegram_messages(chat_id, created_at);
+
+                CREATE TABLE IF NOT EXISTS telegram_chats (
+                    chat_id         INTEGER PRIMARY KEY,
+                    chat_type       TEXT NOT NULL DEFAULT 'private',
+                    title           TEXT,
+                    username        TEXT,
+                    is_active       INTEGER NOT NULL DEFAULT 1,
+                    last_activity   TIMESTAMP,
+                    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                CREATE INDEX IF NOT EXISTS idx_tg_chats_active
+                    ON telegram_chats(is_active, last_activity DESC);
                 """
             )
             self._migrate_telegram_columns(conn)
+            self._migrate_telegram_chats(conn)
+            self._migrate_contacts_pipeline(conn)
+            self._migrate_daily_todos(conn)
+
+    def _migrate_daily_todos(self, conn: sqlite3.Connection) -> None:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS daily_todos (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                content     TEXT NOT NULL,
+                item_type   TEXT NOT NULL DEFAULT 'task'
+                    CHECK(item_type IN ('task', 'note')),
+                is_done     INTEGER NOT NULL DEFAULT 0,
+                list_date   DATE NOT NULL DEFAULT (date('now')),
+                created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_daily_todos_date
+                ON daily_todos(list_date, is_done, item_type)
+            """
+        )
+
+    def _migrate_contacts_pipeline(self, conn: sqlite3.Connection) -> None:
+        cols = {
+            row[1] for row in conn.execute("PRAGMA table_info(contacts)").fetchall()
+        }
+        if "pipeline_stage" not in cols:
+            conn.execute(
+                """
+                ALTER TABLE contacts
+                ADD COLUMN pipeline_stage TEXT NOT NULL DEFAULT 'cold_call'
+                """
+            )
+
+    def _migrate_telegram_chats(self, conn: sqlite3.Connection) -> None:
+        rows = conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='telegram_chats'"
+        ).fetchone()
+        if not rows:
+            return
+        conn.execute(
+            """
+            INSERT OR IGNORE INTO telegram_chats (chat_id, chat_type, title, is_active, last_activity)
+            SELECT chat_id,
+                   CASE
+                       WHEN chat_id > 0 THEN 'private'
+                       WHEN CAST(chat_id AS TEXT) LIKE '-100%' THEN 'supergroup'
+                       ELSE 'group'
+                   END,
+                   'Chat ' || chat_id,
+                   1,
+                   MAX(created_at)
+            FROM telegram_messages
+            GROUP BY chat_id
+            """
+        )
+
+    @staticmethod
+    def infer_chat_type(chat_id: int) -> str:
+        if chat_id > 0:
+            return "private"
+        if str(chat_id).startswith("-100"):
+            return "supergroup"
+        return "group"
+
+    @staticmethod
+    def is_group_chat_type(chat_type: str | None) -> bool:
+        return (chat_type or "") in ("group", "supergroup")
+
+    def upsert_telegram_chat(
+        self,
+        *,
+        chat_id: int,
+        chat_type: str | None = None,
+        title: str | None = None,
+        username: str | None = None,
+        is_active: bool = True,
+        last_activity: datetime | None = None,
+    ) -> None:
+        ctype = chat_type or self.infer_chat_type(chat_id)
+        title = (title or "").strip() or None
+        username = (username or "").strip() or None
+        ts = (last_activity or datetime.utcnow()).strftime("%Y-%m-%d %H:%M:%S")
+        with self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO telegram_chats (
+                    chat_id, chat_type, title, username, is_active, last_activity, updated_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(chat_id) DO UPDATE SET
+                    chat_type = excluded.chat_type,
+                    title = COALESCE(excluded.title, telegram_chats.title),
+                    username = COALESCE(excluded.username, telegram_chats.username),
+                    is_active = excluded.is_active,
+                    last_activity = COALESCE(excluded.last_activity, telegram_chats.last_activity),
+                    updated_at = excluded.updated_at
+                """,
+                (chat_id, ctype, title, username, 1 if is_active else 0, ts, ts),
+            )
+
+    def list_telegram_chat_ids(self, *, active_only: bool = False) -> list[int]:
+        query = "SELECT chat_id FROM telegram_chats"
+        if active_only:
+            query += " WHERE is_active = 1"
+        query += " ORDER BY COALESCE(last_activity, updated_at) DESC"
+        with self._connect() as conn:
+            rows = conn.execute(query).fetchall()
+        return [int(r["chat_id"]) for r in rows]
 
     def _migrate_telegram_columns(self, conn: sqlite3.Connection) -> None:
         rows = conn.execute("PRAGMA table_info(telegram_messages)").fetchall()
@@ -126,6 +275,122 @@ class Memory:
                 (name, email, role, company, notes),
             )
             return int(cur.lastrowid)
+
+    def list_contacts(
+        self,
+        *,
+        limit: int = 100,
+        search: str | None = None,
+    ) -> list[dict[str, Any]]:
+        limit = max(1, min(limit, 500))
+        query = """
+            SELECT id, name, email, phone, role, company, notes,
+                   pipeline_stage, created_at
+            FROM contacts
+        """
+        params: list[Any] = []
+        if search:
+            like = f"%{search.strip()}%"
+            query += """
+                WHERE name LIKE ? OR email LIKE ? OR phone LIKE ?
+                   OR company LIKE ? OR role LIKE ? OR notes LIKE ?
+            """
+            params.extend([like, like, like, like, like, like])
+        query += " ORDER BY name COLLATE NOCASE ASC, id DESC LIMIT ?"
+        params.append(limit)
+        with self._connect() as conn:
+            rows = conn.execute(query, params).fetchall()
+        return [dict(r) for r in rows]
+
+    def get_contact(self, contact_id: int) -> dict[str, Any] | None:
+        with self._connect() as conn:
+            row = conn.execute(
+                """
+                SELECT id, name, email, phone, role, company, notes,
+                       pipeline_stage, created_at
+                FROM contacts
+                WHERE id = ?
+                """,
+                (contact_id,),
+            ).fetchone()
+        return dict(row) if row else None
+
+    def create_contact(
+        self,
+        *,
+        name: str,
+        email: str | None = None,
+        phone: str | None = None,
+        role: str | None = None,
+        company: str | None = None,
+        notes: str | None = None,
+        pipeline_stage: str | None = None,
+    ) -> int:
+        stage = normalize_crm_pipeline_stage(pipeline_stage)
+        with self._connect() as conn:
+            cur = conn.execute(
+                """
+                INSERT INTO contacts (
+                    name, email, phone, role, company, notes, pipeline_stage
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (name, email, phone, role, company, notes, stage),
+            )
+            return int(cur.lastrowid)
+
+    def update_contact(
+        self,
+        contact_id: int,
+        *,
+        name: str,
+        email: str | None = None,
+        phone: str | None = None,
+        role: str | None = None,
+        company: str | None = None,
+        notes: str | None = None,
+        pipeline_stage: str | None = None,
+    ) -> bool:
+        stage = normalize_crm_pipeline_stage(pipeline_stage)
+        with self._connect() as conn:
+            cur = conn.execute(
+                """
+                UPDATE contacts
+                SET name = ?, email = ?, phone = ?, role = ?, company = ?,
+                    notes = ?, pipeline_stage = ?
+                WHERE id = ?
+                """,
+                (name, email, phone, role, company, notes, stage, contact_id),
+            )
+            return cur.rowcount > 0
+
+    def update_contact_pipeline_stage(
+        self,
+        contact_id: int,
+        pipeline_stage: str,
+    ) -> bool:
+        stage = normalize_crm_pipeline_stage(pipeline_stage)
+        with self._connect() as conn:
+            cur = conn.execute(
+                """
+                UPDATE contacts SET pipeline_stage = ? WHERE id = ?
+                """,
+                (stage, contact_id),
+            )
+            return cur.rowcount > 0
+
+    def delete_contact(self, contact_id: int) -> bool:
+        with self._connect() as conn:
+            conn.execute(
+                "UPDATE message_history SET contact_id = NULL WHERE contact_id = ?",
+                (contact_id,),
+            )
+            conn.execute(
+                "UPDATE scheduled_tasks SET contact_id = NULL WHERE contact_id = ?",
+                (contact_id,),
+            )
+            cur = conn.execute("DELETE FROM contacts WHERE id = ?", (contact_id,))
+            return cur.rowcount > 0
 
     def log_message(
         self,
@@ -291,70 +556,89 @@ class Memory:
     def telegram_chat_exists(self, chat_id: int) -> bool:
         with self._connect() as conn:
             row = conn.execute(
+                """
+                SELECT 1 FROM telegram_chats
+                WHERE chat_id = ? AND is_active = 1
+                """,
+                (chat_id,),
+            ).fetchone()
+            if row:
+                return True
+            row = conn.execute(
                 "SELECT 1 FROM telegram_messages WHERE chat_id = ? LIMIT 1",
                 (chat_id,),
             ).fetchone()
         return row is not None
 
     def list_telegram_chats(self) -> list[dict[str, Any]]:
-        """One row per Telegram chat_id with counts and a short preview."""
+        """Chats/groups the bot knows about, merged with message activity."""
         with self._connect() as conn:
-            agg = conn.execute(
+            rows = conn.execute(
                 """
-                SELECT chat_id,
-                       MAX(created_at) AS last_activity,
-                       COUNT(*) AS message_count,
-                       SUM(CASE WHEN message_type = 'photo' THEN 1 ELSE 0 END) AS photo_count
-                FROM telegram_messages
-                GROUP BY chat_id
-                ORDER BY MAX(created_at) DESC
+                SELECT
+                    c.chat_id,
+                    c.chat_type,
+                    c.title,
+                    c.username,
+                    c.is_active,
+                    COALESCE(msg.last_activity, c.last_activity, c.updated_at) AS last_activity,
+                    COALESCE(msg.message_count, 0) AS message_count,
+                    COALESCE(msg.photo_count, 0) AS photo_count,
+                    msg.preview AS last_preview
+                FROM telegram_chats c
+                LEFT JOIN (
+                    SELECT
+                        chat_id,
+                        MAX(created_at) AS last_activity,
+                        COUNT(*) AS message_count,
+                        SUM(CASE WHEN message_type = 'photo' THEN 1 ELSE 0 END) AS photo_count,
+                        (
+                            SELECT
+                                CASE
+                                    WHEN message_type = 'photo' THEN COALESCE(text_content, 'Photo')
+                                    ELSE COALESCE(text_content, photo_llm_description, '')
+                                END
+                            FROM telegram_messages tm2
+                            WHERE tm2.chat_id = telegram_messages.chat_id
+                            ORDER BY tm2.id DESC
+                            LIMIT 1
+                        ) AS preview
+                    FROM telegram_messages
+                    GROUP BY chat_id
+                ) msg ON msg.chat_id = c.chat_id
+                WHERE c.is_active = 1
+                ORDER BY COALESCE(msg.last_activity, c.last_activity, c.updated_at) DESC
                 """
             ).fetchall()
 
             out: list[dict[str, Any]] = []
-            for row in agg:
+            for row in rows:
                 cid = int(row["chat_id"])
-                last = conn.execute(
-                    """
-                    SELECT text_content, message_type, direction, username,
-                           photo_llm_description
-                    FROM telegram_messages
-                    WHERE chat_id = ?
-                    ORDER BY id DESC
-                    LIMIT 1
-                    """,
-                    (cid,),
-                ).fetchone()
-                preview_parts: list[str] = []
-                if last:
-                    if last["message_type"] == "photo":
-                        preview_parts.append("Photo")
-                    if last["text_content"]:
-                        preview_parts.append(str(last["text_content"])[:100])
-                    elif last["photo_llm_description"]:
-                        preview_parts.append(str(last["photo_llm_description"])[:100])
-                preview = " · ".join(preview_parts) if preview_parts else "—"
-                label_row = conn.execute(
-                    """
-                    SELECT username FROM telegram_messages
-                    WHERE chat_id = ?
-                      AND direction = 'received'
-                      AND username IS NOT NULL
-                      AND username != ''
-                    ORDER BY id DESC LIMIT 1
-                    """,
-                    (cid,),
-                ).fetchone()
-                uname = label_row["username"] if label_row else None
-                title = f"@{uname}" if uname else f"Chat {cid}"
-                pc = row["photo_count"]
+                chat_type = row["chat_type"] or self.infer_chat_type(cid)
+                title = (row["title"] or "").strip()
+                username = (row["username"] or "").strip()
+                if not title:
+                    if self.is_group_chat_type(chat_type):
+                        title = f"Group {cid}"
+                    elif username:
+                        title = f"@{username}"
+                    else:
+                        title = f"Chat {cid}"
+
+                preview = (row["last_preview"] or "").strip()
+                if not preview:
+                    preview = "—"
+
                 out.append(
                     {
                         "chat_id": cid,
-                        "title": title,
+                        "chat_type": chat_type,
+                        "title": title[:180],
+                        "username": username,
+                        "is_group": self.is_group_chat_type(chat_type),
                         "last_activity": row["last_activity"],
                         "message_count": int(row["message_count"] or 0),
-                        "photo_count": int(pc) if pc is not None else 0,
+                        "photo_count": int(row["photo_count"] or 0),
                         "preview": preview[:180],
                     }
                 )
@@ -405,19 +689,31 @@ class Memory:
                     continue
 
                 cid = int(last["chat_id"])
-                label_row = conn.execute(
+                meta = conn.execute(
                     """
-                    SELECT username FROM telegram_messages
-                    WHERE chat_id = ?
-                      AND direction = 'received'
-                      AND username IS NOT NULL
-                      AND username != ''
-                    ORDER BY id DESC LIMIT 1
+                    SELECT chat_type, title, username
+                    FROM telegram_chats
+                    WHERE chat_id = ? AND is_active = 1
                     """,
                     (cid,),
                 ).fetchone()
-                uname = label_row["username"] if label_row else None
-                title = f"@{uname}" if uname else f"Chat {cid}"
+                if meta and (meta["title"] or "").strip():
+                    title = str(meta["title"]).strip()
+                    uname = meta["username"] or ""
+                else:
+                    label_row = conn.execute(
+                        """
+                        SELECT username FROM telegram_messages
+                        WHERE chat_id = ?
+                          AND direction = 'received'
+                          AND username IS NOT NULL
+                          AND username != ''
+                        ORDER BY id DESC LIMIT 1
+                        """,
+                        (cid,),
+                    ).fetchone()
+                    uname = label_row["username"] if label_row else None
+                    title = f"@{uname}" if uname else f"Chat {cid}"
 
                 preview_parts: list[str] = []
                 if last["message_type"] == "photo":
@@ -536,3 +832,123 @@ class Memory:
                 ),
             )
             return int(cur.lastrowid)
+
+    @staticmethod
+    def _normalize_list_date(list_date: str | None) -> str:
+        if list_date:
+            raw = list_date.strip()[:10]
+            datetime.strptime(raw, "%Y-%m-%d")
+            return raw
+        return datetime.now().strftime("%Y-%m-%d")
+
+    def list_daily_todos(
+        self,
+        *,
+        list_date: str | None = None,
+        include_done: bool = False,
+        limit: int = 100,
+    ) -> list[dict[str, Any]]:
+        day = self._normalize_list_date(list_date)
+        limit = max(1, min(limit, 200))
+        query = """
+            SELECT id, content, item_type, is_done, list_date, created_at, updated_at
+            FROM daily_todos
+            WHERE list_date = ?
+        """
+        params: list[Any] = [day]
+        if not include_done:
+            query += " AND (item_type = 'note' OR is_done = 0)"
+        query += """
+            ORDER BY
+                CASE item_type WHEN 'note' THEN 1 ELSE 0 END,
+                is_done ASC,
+                id DESC
+            LIMIT ?
+        """
+        params.append(limit)
+        with self._connect() as conn:
+            rows = conn.execute(query, params).fetchall()
+        return [dict(r) for r in rows]
+
+    def count_open_daily_tasks(self, *, list_date: str | None = None) -> int:
+        day = self._normalize_list_date(list_date)
+        with self._connect() as conn:
+            row = conn.execute(
+                """
+                SELECT COUNT(*) AS n
+                FROM daily_todos
+                WHERE list_date = ? AND item_type = 'task' AND is_done = 0
+                """,
+                (day,),
+            ).fetchone()
+        return int(row["n"]) if row else 0
+
+    def get_daily_todo(self, todo_id: int) -> dict[str, Any] | None:
+        with self._connect() as conn:
+            row = conn.execute(
+                """
+                SELECT id, content, item_type, is_done, list_date, created_at, updated_at
+                FROM daily_todos
+                WHERE id = ?
+                """,
+                (todo_id,),
+            ).fetchone()
+        return dict(row) if row else None
+
+    def create_daily_todo(
+        self,
+        *,
+        content: str,
+        item_type: str = "task",
+        list_date: str | None = None,
+    ) -> int:
+        text = (content or "").strip()
+        if not text:
+            raise ValueError("Content is required")
+        kind = (item_type or "task").strip().lower()
+        if kind not in ("task", "note"):
+            raise ValueError("item_type must be task or note")
+        day = self._normalize_list_date(list_date)
+        with self._connect() as conn:
+            cur = conn.execute(
+                """
+                INSERT INTO daily_todos (content, item_type, is_done, list_date)
+                VALUES (?, ?, 0, ?)
+                """,
+                (text, kind, day),
+            )
+            return int(cur.lastrowid)
+
+    def update_daily_todo(
+        self,
+        todo_id: int,
+        *,
+        content: str | None = None,
+        is_done: bool | None = None,
+    ) -> bool:
+        fields: list[str] = []
+        params: list[Any] = []
+        if content is not None:
+            text = content.strip()
+            if not text:
+                raise ValueError("Content cannot be empty")
+            fields.append("content = ?")
+            params.append(text)
+        if is_done is not None:
+            fields.append("is_done = ?")
+            params.append(1 if is_done else 0)
+        if not fields:
+            return False
+        fields.append("updated_at = CURRENT_TIMESTAMP")
+        params.append(todo_id)
+        with self._connect() as conn:
+            cur = conn.execute(
+                f"UPDATE daily_todos SET {', '.join(fields)} WHERE id = ?",
+                params,
+            )
+            return cur.rowcount > 0
+
+    def delete_daily_todo(self, todo_id: int) -> bool:
+        with self._connect() as conn:
+            cur = conn.execute("DELETE FROM daily_todos WHERE id = ?", (todo_id,))
+            return cur.rowcount > 0

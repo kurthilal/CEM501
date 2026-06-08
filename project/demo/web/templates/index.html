@@ -13,19 +13,25 @@
   <div class="app-shell">
     <aside class="sidebar" aria-label="Features menu">
       <div class="brand">
-        <strong class="brand-logo">CEM501</strong>
+        <a href="/" class="brand-link" aria-label="CEM501 Ana sayfa">
+          <img
+            class="brand-logo-img"
+            src="{{ url_for('static', filename='img/logo.png') }}"
+            alt="CEM501"
+          />
+        </a>
         <span class="brand-sub">Agent dashboard</span>
       </div>
       <nav class="side-nav" role="navigation">
         <button type="button" class="nav-item active" data-pane="overview">Dashboard</button>
-        <button type="button" class="nav-item" data-pane="classify">Classifier</button>
-        <button type="button" class="nav-item" data-pane="draft">Drafter</button>
-        <button type="button" class="nav-item" data-pane="pipeline">Full pipeline</button>
+        <button type="button" class="nav-item" data-pane="todos">Daily TodoList</button>
+        <button type="button" class="nav-item" data-pane="calendar">Calendar</button>
+        <button type="button" class="nav-item" data-pane="crm">Customer Relations</button>
+        <button type="button" class="nav-item" data-pane="draft">Social Media Drafter</button>
         <button type="button" class="nav-item" data-pane="inbox">Inbox preview</button>
-        <button type="button" class="nav-item" data-pane="memory">Memory (SQLite)</button>
         <button type="button" class="nav-item" data-pane="telegram">Telegram chat</button>
-        <button type="button" class="nav-item" data-pane="send">SMTP send</button>
-        <button type="button" class="nav-item" data-pane="cli">CLI reference</button>
+        <div class="side-nav-divider" aria-hidden="true"></div>
+        <button type="button" class="nav-item" data-pane="memory">Memory (SQLite)</button>
       </nav>
     </aside>
 
@@ -45,7 +51,7 @@
         <div class="dash-header">
           <div>
             <h2 id="overview-heading">Dashboard</h2>
-            <p class="hint dash-subtitle">Unread email, pending notifications, and Telegram chats awaiting a reply.</p>
+            <p class="hint dash-subtitle">Unread email, calendar, daily todos, notifications, and Telegram at a glance.</p>
           </div>
           <div class="dash-header-actions">
             <span id="dash-updated" class="dash-updated" aria-live="polite"></span>
@@ -53,25 +59,114 @@
           </div>
         </div>
 
-        <div class="dash-stats" aria-label="Summary counts">
-          <div class="dash-stat" id="stat-unread">
+        <div class="dash-stats-carousel" aria-label="Summary counts">
+          <div class="dash-stats-track" id="dash-stats-track">
+            <div class="dash-stats-set" id="dash-stats-set">
+          <div class="dash-stat" id="stat-unread" data-stat-card="unread">
             <span class="dash-stat-value" data-stat="unread">—</span>
-            <span class="dash-stat-label">Unread emails</span>
+            <span class="dash-stat-label">
+              <svg class="dash-icon dash-icon-mail" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 6h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+                <path d="m4 8 8 5 8-5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Unread emails
+            </span>
           </div>
-          <div class="dash-stat" id="stat-notifications">
+          <div class="dash-stat" id="stat-notifications" data-stat-card="notifications">
             <span class="dash-stat-value" data-stat="notifications">—</span>
-            <span class="dash-stat-label">Notifications</span>
+            <span class="dash-stat-label">
+              <svg class="dash-icon dash-icon-bell" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3a4.5 4.5 0 0 1 4.5 4.5v2.8c0 .6.2 1.2.6 1.7l.9 1.1a1 1 0 0 1-.8 1.6H6.8a1 1 0 0 1-.8-1.6l.9-1.1c.4-.5.6-1.1.6-1.7V7.5A4.5 4.5 0 0 1 12 3z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M10 19a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+              </svg>
+              Notifications
+            </span>
           </div>
-          <div class="dash-stat" id="stat-telegram">
+          <div class="dash-stat" id="stat-telegram" data-stat-card="telegram">
             <span class="dash-stat-value" data-stat="telegram">—</span>
-            <span class="dash-stat-label">Waiting Telegram</span>
+            <span class="dash-stat-label">
+              <svg class="dash-icon dash-icon-phone" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="7" y="2.5" width="10" height="19" rx="2" fill="none" stroke="currentColor" stroke-width="1.75"/>
+                <path d="M11 18.5h2" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+              </svg>
+              Telegram
+            </span>
+          </div>
+          <div class="dash-stat" id="stat-calendar" data-stat-card="calendar">
+            <span class="dash-stat-value" data-stat="calendar">—</span>
+            <span class="dash-stat-label">Calendar events</span>
+          </div>
+          <div class="dash-stat" id="stat-todos" data-stat-card="todos">
+            <span class="dash-stat-value" data-stat="todos">—</span>
+            <span class="dash-stat-label">
+              <svg class="dash-icon dash-icon-notebook" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 4h10a2 2 0 0 1 2 2v15H8a2 2 0 0 1-2-2V4z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+                <path d="M6 4v15a2 2 0 0 0 2 2h10" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+                <path d="M9 8h6M9 12h6M9 16h4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+              </svg>
+              Open todos
+            </span>
+          </div>
+            </div>
           </div>
         </div>
 
         <div class="dash-grid">
+          <div class="dash-row-primary">
+            <article class="dash-panel dash-panel-calendar" aria-labelledby="dash-calendar-heading">
+              <div class="dash-panel-head">
+                <h3 id="dash-calendar-heading">Calendar</h3>
+                <div class="dash-panel-head-actions">
+                  <div class="dash-cal-nav" aria-label="Month navigation">
+                    <button type="button" class="btn-text dash-cal-prev" id="btn-dash-cal-prev" aria-label="Previous month">‹</button>
+                    <span id="dash-cal-month-label" class="dash-cal-month-label"></span>
+                    <button type="button" class="btn-text dash-cal-next" id="btn-dash-cal-next" aria-label="Next month">›</button>
+                  </div>
+                  <button type="button" class="btn-text dash-link" data-pane-link="calendar">Open Calendar →</button>
+                </div>
+              </div>
+              <p id="dash-calendar-account" class="hint dash-calendar-account"></p>
+              <div id="dash-calendar" class="dash-cal-body" aria-live="polite">
+                <p class="dash-empty">Loading…</p>
+              </div>
+            </article>
+
+            <article class="dash-panel dash-panel-todos" aria-labelledby="dash-todos-heading">
+              <div class="dash-panel-head">
+                <h3 id="dash-todos-heading" class="dash-panel-title">
+                  <svg class="dash-icon dash-icon-notebook" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 4h10a2 2 0 0 1 2 2v15H8a2 2 0 0 1-2-2V4z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+                    <path d="M6 4v15a2 2 0 0 0 2 2h10" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+                    <path d="M9 8h6M9 12h6M9 16h4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+                  </svg>
+                  <span>Daily TodoList</span>
+                </h3>
+                <button type="button" class="btn-text dash-link" data-pane-link="todos">Open list →</button>
+              </div>
+              <form id="dash-todo-quick-form" class="dash-todo-quick">
+                <input type="text" id="dash-todo-input" placeholder="Something on your mind…" />
+                <label class="dash-todo-check-label">
+                  <input type="checkbox" id="dash-todo-as-task" checked />
+                  Checklist
+                </label>
+                <button type="submit" class="primary">Add</button>
+              </form>
+              <div id="dash-todos" class="dash-list dash-todos-scroll" aria-live="polite">
+                <p class="dash-empty">Loading…</p>
+              </div>
+            </article>
+          </div>
+
+          <div class="dash-row-secondary">
           <article class="dash-panel" aria-labelledby="dash-emails-heading">
             <div class="dash-panel-head">
-              <h3 id="dash-emails-heading">Unread emails</h3>
+              <h3 id="dash-emails-heading" class="dash-panel-title">
+                <svg class="dash-icon dash-icon-mail" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 6h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+                  <path d="m4 8 8 5 8-5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Unread emails</span>
+              </h3>
               <button type="button" class="btn-text dash-link" data-pane-link="inbox">Inbox preview →</button>
             </div>
             <div id="dash-emails" class="dash-list" aria-live="polite">
@@ -81,7 +176,13 @@
 
           <article class="dash-panel" aria-labelledby="dash-notifications-heading">
             <div class="dash-panel-head">
-              <h3 id="dash-notifications-heading">Notifications</h3>
+              <h3 id="dash-notifications-heading" class="dash-panel-title">
+                <svg class="dash-icon dash-icon-bell" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 3a4.5 4.5 0 0 1 4.5 4.5v2.8c0 .6.2 1.2.6 1.7l.9 1.1a1 1 0 0 1-.8 1.6H6.8a1 1 0 0 1-.8-1.6l.9-1.1c.4-.5.6-1.1.6-1.7V7.5A4.5 4.5 0 0 1 12 3z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M10 19a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+                </svg>
+                <span>Notifications</span>
+              </h3>
               <button type="button" class="btn-text dash-link" data-pane-link="memory">Memory →</button>
             </div>
             <div id="dash-notifications" class="dash-list" aria-live="polite">
@@ -91,13 +192,20 @@
 
           <article class="dash-panel" aria-labelledby="dash-telegram-heading">
             <div class="dash-panel-head">
-              <h3 id="dash-telegram-heading">Waiting Telegram</h3>
+              <h3 id="dash-telegram-heading" class="dash-panel-title">
+                <svg class="dash-icon dash-icon-phone" viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="7" y="2.5" width="10" height="19" rx="2" fill="none" stroke="currentColor" stroke-width="1.75"/>
+                  <path d="M11 18.5h2" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+                </svg>
+                <span>Telegram</span>
+              </h3>
               <button type="button" class="btn-text dash-link" data-pane-link="telegram">Open chat →</button>
             </div>
             <div id="dash-telegram" class="dash-list" aria-live="polite">
               <p class="dash-empty">Loading…</p>
             </div>
           </article>
+          </div>
         </div>
       </section>
 
@@ -123,29 +231,46 @@
       </section>
 
       <section id="pane-draft" class="feature-pane panel" aria-labelledby="draft-heading">
-        <h2 id="draft-heading">Drafter</h2>
-        <p class="hint">Generates a plain-text reply (Claude if API key present; else templates).</p>
-        <label for="dr-text">Incoming text</label>
-        <textarea id="dr-text"></textarea>
-        <div class="row two" style="margin-top:0.75rem">
-          <div>
-            <label for="dr-category">Category</label>
-            <select id="dr-category">
-              <option>URGENT</option>
-              <option>ACTION</option>
-              <option>FYI</option>
-              <option>ARCHIVE</option>
-            </select>
-          </div>
-          <div>
-            <label for="dr-subject">Subject (optional, email-style)</label>
-            <input type="text" id="dr-subject" />
-          </div>
+        <h2 id="draft-heading">Social Media Drafter</h2>
+        <p class="hint">
+          LinkedIn ve Instagram için aklınıza gelen notları yazın; şablon paylaşım taslağı önerilsin
+          (Claude API anahtarı varsa LLM, yoksa hazır şablonlar).
+        </p>
+        <div class="sm-draft-grid">
+          <article class="sm-draft-card sm-draft-linkedin">
+            <header class="sm-draft-card-head">
+              <span class="sm-draft-badge sm-draft-badge-linkedin">in</span>
+              <h3>LinkedIn</h3>
+            </header>
+            <label for="sm-notes-linkedin">Aklınıza gelenler</label>
+            <textarea id="sm-notes-linkedin" rows="6" placeholder="Örn: yeni ürün lansmanı, ekip başarısı, sektör trendi…"></textarea>
+            <div class="btn-row">
+              <button type="button" class="primary" id="btn-sm-draft-linkedin">Taslak öner</button>
+              <button type="button" class="ghost sm-copy-btn" data-sm-copy="linkedin">Kopyala</button>
+            </div>
+            <p class="sm-draft-label">Önerilen taslak</p>
+            <div id="sm-out-linkedin" class="out sm-draft-out" aria-live="polite"></div>
+            <p class="sm-draft-label">Alternatif şablonlar</p>
+            <div id="sm-suggestions-linkedin" class="sm-suggestions" aria-live="polite"></div>
+          </article>
+
+          <article class="sm-draft-card sm-draft-instagram">
+            <header class="sm-draft-card-head">
+              <span class="sm-draft-badge sm-draft-badge-instagram">IG</span>
+              <h3>Instagram</h3>
+            </header>
+            <label for="sm-notes-instagram">Aklınıza gelenler</label>
+            <textarea id="sm-notes-instagram" rows="6" placeholder="Örn: kısa ipucu, behind the scenes, müşteri hikayesi…"></textarea>
+            <div class="btn-row">
+              <button type="button" class="primary" id="btn-sm-draft-instagram">Taslak öner</button>
+              <button type="button" class="ghost sm-copy-btn" data-sm-copy="instagram">Kopyala</button>
+            </div>
+            <p class="sm-draft-label">Önerilen taslak</p>
+            <div id="sm-out-instagram" class="out sm-draft-out" aria-live="polite"></div>
+            <p class="sm-draft-label">Alternatif şablonlar</p>
+            <div id="sm-suggestions-instagram" class="sm-suggestions" aria-live="polite"></div>
+          </article>
         </div>
-        <div class="btn-row">
-          <button type="button" class="primary" id="btn-draft">Draft reply</button>
-        </div>
-        <div id="dr-out" class="out" aria-live="polite"></div>
       </section>
 
       <section id="pane-pipeline" class="feature-pane panel" aria-labelledby="pipeline-heading">
@@ -169,19 +294,50 @@
         <div id="pl-out" class="out" aria-live="polite"></div>
       </section>
 
-      <section id="pane-inbox" class="feature-pane panel" aria-labelledby="inbox-heading">
+      <section id="pane-inbox" class="feature-pane panel inbox-pane" aria-labelledby="inbox-heading">
         <h2 id="inbox-heading">Inbox preview</h2>
-        <p class="hint">Calls <code>demo.reader.read_recent_emails</code> (IMAP). Requires valid <code>EMAIL_*</code> in <code>project/.env</code>.</p>
-        <div class="row two">
-          <div>
-            <label for="in-n">Number of messages</label>
-            <input type="number" id="in-n" value="5" min="1" max="50" />
+        <p class="hint">
+          Son e-postaları IMAP ile listeler. <strong>Reply</strong> ile LLM taslak ve alternatif öneriler alın;
+          gönderim SMTP üzerinden yapılır (<code>WEB_ALLOW_SEND=1</code> gerekir).
+        </p>
+        <div class="inbox-split" aria-live="polite">
+          <div class="inbox-list-panel">
+            <div class="inbox-list-head">
+              <label for="in-n" class="inbox-list-label">Messages</label>
+              <div class="inbox-list-actions">
+                <input type="number" id="in-n" value="5" min="1" max="50" class="inbox-n-input" />
+                <button type="button" class="primary" id="btn-inbox">Fetch</button>
+              </div>
+            </div>
+            <div id="inbox-list" class="inbox-list">
+              <p class="inbox-empty">Fetch to load inbox.</p>
+            </div>
           </div>
-          <div style="display:flex; align-items:flex-end">
-            <button type="button" class="primary" id="btn-inbox">Fetch</button>
+          <div class="inbox-reply-panel">
+            <div id="inbox-reply-empty" class="inbox-reply-placeholder">
+              Select an email and click Reply to get LLM suggestions.
+            </div>
+            <div id="inbox-reply-form" class="inbox-reply-form hidden">
+              <div class="inbox-reply-head">
+                <div>
+                  <h3 id="inbox-reply-title">Reply</h3>
+                  <p id="inbox-reply-meta" class="inbox-reply-meta"></p>
+                </div>
+                <span id="inbox-reply-category" class="inbox-category-badge"></span>
+              </div>
+              <div id="inbox-suggestions" class="inbox-suggestions"></div>
+              <label for="inbox-reply-subject">Subject</label>
+              <input type="text" id="inbox-reply-subject" />
+              <label for="inbox-reply-body">Reply</label>
+              <textarea id="inbox-reply-body" rows="8"></textarea>
+              <div class="inbox-reply-actions">
+                <button type="button" id="btn-inbox-regen">Regenerate suggestions</button>
+                <button type="button" class="primary" id="btn-inbox-send">Send reply</button>
+              </div>
+              <p id="inbox-reply-status" class="inbox-reply-status hint" aria-live="polite"></p>
+            </div>
           </div>
         </div>
-        <div id="in-out" class="out" aria-live="polite"></div>
       </section>
 
       <section id="pane-telegram" class="feature-pane panel tg-pane" aria-labelledby="telegram-heading">
@@ -194,7 +350,7 @@
         <div class="tg-split" aria-live="polite">
           <aside class="tg-chat-list-panel">
             <div class="tg-chat-list-head">
-              <span>Active chats</span>
+              <span>Chats &amp; groups</span>
               <button type="button" class="btn-text" id="btn-telegram-refresh">Refresh</button>
             </div>
             <div id="tg-chat-list" class="tg-chat-list"></div>
@@ -243,6 +399,179 @@
         <div id="mem-out" class="out" style="padding:0;border:none;background:transparent"></div>
       </section>
 
+      <section id="pane-crm" class="feature-pane panel crm-pane" aria-labelledby="crm-heading">
+        <h2 id="crm-heading">Customer Relations</h2>
+        <p class="hint">
+          Manage customers in <code>demo/memory/memory.db</code> (<code>contacts</code> table). Drag people into a pipeline stage above.
+        </p>
+        <div class="crm-kanban-wrap" aria-label="Sales pipeline">
+          <div class="crm-kanban-head">
+            <span class="crm-kanban-title">Sales pipeline</span>
+            <span class="hint crm-kanban-hint">Drag customers from the list or between columns</span>
+          </div>
+          <div class="crm-kanban" id="crm-kanban"></div>
+          <p id="crm-kanban-status" class="hint crm-kanban-status" aria-live="polite"></p>
+        </div>
+        <div class="crm-split" aria-live="polite">
+          <aside class="crm-list-panel">
+            <div class="crm-list-head">
+              <span>Customers</span>
+              <button type="button" class="btn-text" id="btn-crm-refresh">Refresh</button>
+            </div>
+            <div class="crm-search-row">
+              <input type="search" id="crm-search" placeholder="Search name, email, company…" />
+            </div>
+            <div id="crm-customer-list" class="crm-customer-list"></div>
+            <div class="crm-list-foot">
+              <button type="button" class="primary" id="btn-crm-new">New customer</button>
+            </div>
+          </aside>
+          <div class="crm-detail-panel">
+            <div id="crm-detail-empty" class="crm-detail-placeholder">
+              Select a customer to view or edit, or create a new one.
+            </div>
+            <form id="crm-form" class="crm-form hidden">
+              <div class="crm-form-head">
+                <h3 id="crm-form-title">Customer</h3>
+                <span id="crm-form-id" class="crm-form-id"></span>
+              </div>
+              <div class="row two">
+                <div>
+                  <label for="crm-name">Name *</label>
+                  <input type="text" id="crm-name" required />
+                </div>
+                <div>
+                  <label for="crm-email">Email</label>
+                  <input type="email" id="crm-email" />
+                </div>
+              </div>
+              <div class="crm-email-actions">
+                <button type="button" class="primary" id="btn-crm-email-reply" disabled>
+                  Reply via email
+                </button>
+                <span class="hint crm-email-hint">Compose in Inbox and send via SMTP.</span>
+              </div>
+              <div class="row two">
+                <div>
+                  <label for="crm-phone">Phone</label>
+                  <input type="text" id="crm-phone" />
+                </div>
+                <div>
+                  <label for="crm-company">Company</label>
+                  <input type="text" id="crm-company" />
+                </div>
+              </div>
+              <div>
+                <label for="crm-role">Role</label>
+                <input type="text" id="crm-role" />
+              </div>
+              <div>
+                <label for="crm-notes">Notes</label>
+                <textarea id="crm-notes" rows="4"></textarea>
+              </div>
+              <div class="crm-form-actions">
+                <button type="submit" class="primary" id="btn-crm-save">Save</button>
+                <button type="button" id="btn-crm-delete">Delete</button>
+                <button type="button" id="btn-crm-cancel">Cancel</button>
+              </div>
+              <p id="crm-form-status" class="crm-form-status hint" aria-live="polite"></p>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <section id="pane-calendar" class="feature-pane panel calendar-pane" aria-labelledby="calendar-heading">
+        <h2 id="calendar-heading">Calendar</h2>
+        <p class="hint">
+          Same Gmail account as Inbox (<code>EMAIL_ADDRESS</code>). Create events and send invites via Google CalDAV.
+          Writes require <code>WEB_ALLOW_SEND=1</code> in <code>project/.env</code>.
+        </p>
+        <div class="calendar-split" aria-live="polite">
+          <aside class="calendar-list-panel">
+            <div class="calendar-list-head">
+              <span>Upcoming events</span>
+              <button type="button" class="btn-text" id="btn-calendar-refresh">Refresh</button>
+            </div>
+            <p id="calendar-account" class="hint calendar-account"></p>
+            <div id="calendar-event-list" class="calendar-event-list"></div>
+          </aside>
+          <div class="calendar-form-panel">
+            <div class="calendar-form-head">
+              <h3>New event</h3>
+              <span class="hint">Creates a calendar entry; guests receive an invite email.</span>
+            </div>
+            <form id="calendar-form" class="calendar-form">
+              <div>
+                <label for="cal-title">Title *</label>
+                <input type="text" id="cal-title" required placeholder="Team meeting" />
+              </div>
+              <label class="calendar-check-row">
+                <input type="checkbox" id="cal-all-day" />
+                All day
+              </label>
+              <div class="row two">
+                <div>
+                  <label for="cal-start">Start *</label>
+                  <input type="datetime-local" id="cal-start" required />
+                </div>
+                <div>
+                  <label for="cal-end">End</label>
+                  <input type="datetime-local" id="cal-end" />
+                </div>
+              </div>
+              <div>
+                <label for="cal-location">Location</label>
+                <input type="text" id="cal-location" placeholder="Zoom, office, …" />
+              </div>
+              <div>
+                <label for="cal-attendees">Invite guests</label>
+                <input
+                  type="text"
+                  id="cal-attendees"
+                  placeholder="guest1@example.com, guest2@example.com"
+                />
+              </div>
+              <div>
+                <label for="cal-description">Description</label>
+                <textarea id="cal-description" rows="4" placeholder="Agenda, notes…"></textarea>
+              </div>
+              <div class="calendar-form-actions">
+                <button type="submit" class="primary" id="btn-calendar-create">Create event</button>
+                <button type="button" id="btn-calendar-clear">Clear</button>
+              </div>
+              <p id="calendar-form-status" class="calendar-form-status hint" aria-live="polite"></p>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <section id="pane-todos" class="feature-pane panel todos-pane" aria-labelledby="todos-heading">
+        <h2 id="todos-heading">Daily TodoList</h2>
+        <p class="hint">
+          Capture ideas for today. Use <strong>Checklist</strong> for tasks with a checkbox, or leave it off for a plain note.
+          Create Google Calendar events from any item (<code>WEB_ALLOW_SEND=1</code>).
+        </p>
+        <div class="todos-layout">
+          <form id="todo-add-form" class="todo-add-form">
+            <label for="todo-add-input">Add to today&apos;s list</label>
+            <textarea id="todo-add-input" rows="2" placeholder="Call supplier, review proposal, remember to…"></textarea>
+            <div class="todo-add-options">
+              <label class="todo-check-label">
+                <input type="checkbox" id="todo-add-as-task" checked />
+                Checklist item (show checkbox)
+              </label>
+              <button type="submit" class="primary" id="btn-todo-add">Add</button>
+            </div>
+            <p id="todo-add-status" class="hint todo-add-status" aria-live="polite"></p>
+          </form>
+          <div class="todos-list-head">
+            <span id="todo-list-date" class="todo-list-date">Today</span>
+            <button type="button" class="btn-text" id="btn-todos-refresh">Refresh</button>
+          </div>
+          <div id="todo-list" class="todo-list" aria-live="polite"></div>
+        </div>
+      </section>
+
       <section id="pane-send" class="feature-pane panel" aria-labelledby="send-heading">
         <h2 id="send-heading">SMTP send (optional)</h2>
         <p class="hint">Disabled by default. Set <code>WEB_ALLOW_SEND=1</code> in <code>project/.env</code> to enable — only use on a trusted machine.</p>
@@ -284,14 +613,13 @@ python3 -m demo.test_bot</pre>
     (function () {
       var paneTitles = {
         overview: "Dashboard",
-        classify: "Classifier",
-        draft: "Drafter",
-        pipeline: "Pipeline",
         inbox: "Inbox",
-        memory: "Memory",
+        draft: "Social Media Drafter",
+        crm: "Customer Relations",
+        calendar: "Calendar",
+        todos: "Daily TodoList",
         telegram: "Telegram",
-        send: "SMTP",
-        cli: "CLI",
+        memory: "Memory",
       };
 
       var selectedTelegramChatId = null;
@@ -316,18 +644,305 @@ python3 -m demo.test_bot</pre>
           stopDashboardPoll();
         } else if (id === "overview") {
           stopTelegramPoll();
+          initDashStatsCarousel();
           loadDashboard();
           startDashboardPoll();
+        } else if (id === "crm") {
+          stopTelegramPoll();
+          stopDashboardPoll();
+          loadCrmCustomers();
+        } else if (id === "calendar") {
+          stopTelegramPoll();
+          stopDashboardPoll();
+          setDefaultCalendarTimes();
+          loadCalendarEvents();
+        } else if (id === "todos") {
+          stopTelegramPoll();
+          stopDashboardPoll();
+          loadTodoList();
         } else {
           stopTelegramPoll();
           stopDashboardPoll();
         }
       }
 
-      var allowed = ["overview", "classify", "draft", "pipeline", "inbox", "memory", "telegram", "send", "cli"];
+      var allowed = ["overview", "inbox", "draft", "crm", "calendar", "todos", "telegram", "memory"];
 
       var telegramPollTimer = null;
       var dashboardPollTimer = null;
+      var selectedCrmCustomerId = null;
+      var crmFormMode = "hidden";
+      var crmCustomersCache = [];
+      var crmPipelineStage = "cold_call";
+      var crmDragCustomerId = null;
+      var crmListDidDrag = false;
+      var CRM_PIPELINE = [
+        { id: "cold_call", label: "Cold call" },
+        { id: "meeting", label: "Meeting" },
+        { id: "demo", label: "Demo" },
+        { id: "offer", label: "Offer" },
+        { id: "accepted", label: "Accepted" },
+      ];
+
+      function crmPipelineLabel(stage) {
+        var item = CRM_PIPELINE.find(function (s) {
+          return s.id === stage;
+        });
+        return item ? item.label : "Cold call";
+      }
+
+      function crmKanbanCardHtml(c) {
+        var active = selectedCrmCustomerId === c.id ? " is-active" : "";
+        return (
+          "<div class='crm-kanban-card" +
+          active +
+          "' draggable='true' data-customer-id='" +
+          c.id +
+          "'>" +
+          "<span class='crm-kanban-card-name'>" +
+          escapeHtml(c.name || "(unnamed)") +
+          "</span>" +
+          (c.company || c.email
+            ? "<span class='crm-kanban-card-meta'>" +
+              escapeHtml(c.company || c.email || "") +
+              "</span>"
+            : "") +
+          "</div>"
+        );
+      }
+
+      function renderCrmKanban(customers) {
+        var board = document.getElementById("crm-kanban");
+        if (!board) return;
+        var byStage = {};
+        CRM_PIPELINE.forEach(function (stage) {
+          byStage[stage.id] = [];
+        });
+        (customers || []).forEach(function (c) {
+          var stage = c.pipeline_stage || "cold_call";
+          if (!byStage[stage]) byStage[stage] = [];
+          byStage[stage].push(c);
+        });
+        var html = "";
+        CRM_PIPELINE.forEach(function (stage) {
+          var items = byStage[stage.id] || [];
+          html +=
+            "<div class='crm-kanban-col crm-stage-" +
+            escapeHtml(stage.id) +
+            "' data-stage='" +
+            stage.id +
+            "'>" +
+            "<div class='crm-kanban-col-head'>" +
+            "<span>" +
+            escapeHtml(stage.label) +
+            "</span>" +
+            "<span class='crm-kanban-count'>" +
+            items.length +
+            "</span>" +
+            "</div>" +
+            "<div class='crm-kanban-drop' data-stage='" +
+            stage.id +
+            "'>";
+          items.forEach(function (c) {
+            html += crmKanbanCardHtml(c);
+          });
+          html += "</div></div>";
+        });
+        board.innerHTML = html;
+        bindCrmKanbanDrag();
+      }
+
+      function bindCrmKanbanDrag() {
+        document.querySelectorAll(".crm-kanban-card").forEach(function (card) {
+          card.addEventListener("dragstart", function (e) {
+            crmDragCustomerId = parseInt(card.getAttribute("data-customer-id"), 10);
+            card.classList.add("is-dragging");
+            if (e.dataTransfer) {
+              e.dataTransfer.effectAllowed = "move";
+              e.dataTransfer.setData("text/plain", String(crmDragCustomerId));
+            }
+          });
+          card.addEventListener("dragend", function () {
+            card.classList.remove("is-dragging");
+            crmDragCustomerId = null;
+            document.querySelectorAll(".crm-kanban-drop.is-drag-over").forEach(function (el) {
+              el.classList.remove("is-drag-over");
+            });
+            document.querySelectorAll(".crm-kanban-col.is-drag-over").forEach(function (el) {
+              el.classList.remove("is-drag-over");
+            });
+          });
+          card.addEventListener("click", function () {
+            var id = parseInt(card.getAttribute("data-customer-id"), 10);
+            selectedCrmCustomerId = id;
+            crmFormMode = "edit";
+            openCrmCustomer(id).then(function () {
+              renderCrmKanban(crmCustomersCache);
+              renderCrmCustomerList(crmCustomersCache);
+            });
+          });
+        });
+
+        document.querySelectorAll(".crm-kanban-drop").forEach(function (drop) {
+          drop.addEventListener("dragover", function (e) {
+            e.preventDefault();
+            if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+            drop.classList.add("is-drag-over");
+            var col = drop.closest(".crm-kanban-col");
+            if (col) col.classList.add("is-drag-over");
+          });
+          drop.addEventListener("dragleave", function (e) {
+            if (drop.contains(e.relatedTarget)) return;
+            drop.classList.remove("is-drag-over");
+            var col = drop.closest(".crm-kanban-col");
+            if (col) col.classList.remove("is-drag-over");
+          });
+          drop.addEventListener("drop", function (e) {
+            e.preventDefault();
+            drop.classList.remove("is-drag-over");
+            var col = drop.closest(".crm-kanban-col");
+            if (col) col.classList.remove("is-drag-over");
+            var stage = drop.getAttribute("data-stage");
+            var id =
+              crmDragCustomerId ||
+              parseInt((e.dataTransfer && e.dataTransfer.getData("text/plain")) || "", 10);
+            if (id && stage) moveCrmCustomerToStage(id, stage);
+          });
+        });
+      }
+
+      function bindCrmListDrag() {
+        document.querySelectorAll(".crm-customer-row").forEach(function (row) {
+          row.setAttribute("draggable", "true");
+          row.addEventListener("dragstart", function (e) {
+            if (e.target && e.target.classList.contains("crm-row-email-action")) {
+              e.preventDefault();
+              return;
+            }
+            crmListDidDrag = true;
+            crmDragCustomerId = parseInt(row.getAttribute("data-customer-id"), 10);
+            row.classList.add("is-dragging");
+            if (e.dataTransfer) {
+              e.dataTransfer.effectAllowed = "move";
+              e.dataTransfer.setData("text/plain", String(crmDragCustomerId));
+            }
+          });
+          row.addEventListener("dragend", function () {
+            row.classList.remove("is-dragging");
+            crmDragCustomerId = null;
+            setTimeout(function () {
+              crmListDidDrag = false;
+            }, 0);
+          });
+        });
+      }
+
+      async function moveCrmCustomerToStage(customerId, stage) {
+        var customer = crmCustomersCache.find(function (c) {
+          return c.id === customerId;
+        });
+        if (!customer) return;
+        var prev = customer.pipeline_stage || "cold_call";
+        if (prev === stage) return;
+
+        customer.pipeline_stage = stage;
+        if (selectedCrmCustomerId === customerId) crmPipelineStage = stage;
+        renderCrmKanban(crmCustomersCache);
+        renderCrmCustomerList(crmCustomersCache);
+
+        var statusEl = document.getElementById("crm-kanban-status");
+        if (statusEl) statusEl.textContent = "Updating stage…";
+        try {
+          var res = await fetch(
+            "/api/crm/customers/" + encodeURIComponent(customerId) + "/pipeline",
+            {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ pipeline_stage: stage }),
+            }
+          );
+          var data = await res.json().catch(function () {
+            return {};
+          });
+          if (!res.ok) throw new Error(data.error || res.statusText || "Request failed");
+          if (data.customer) {
+            customer.pipeline_stage = data.customer.pipeline_stage || stage;
+            if (selectedCrmCustomerId === customerId) {
+              crmPipelineStage = customer.pipeline_stage;
+            }
+          }
+          renderCrmKanban(crmCustomersCache);
+          renderCrmCustomerList(crmCustomersCache);
+          if (statusEl) statusEl.textContent = "";
+        } catch (e) {
+          customer.pipeline_stage = prev;
+          if (selectedCrmCustomerId === customerId) crmPipelineStage = prev;
+          renderCrmKanban(crmCustomersCache);
+          renderCrmCustomerList(crmCustomersCache);
+          if (statusEl) statusEl.textContent = String(e.message || e);
+        }
+      }
+
+      function renderCrmCustomerList(customers) {
+        var listEl = document.getElementById("crm-customer-list");
+        if (!listEl) return;
+        if (!customers.length) {
+          listEl.innerHTML = "<p class='crm-list-empty'>No customers found.</p>";
+          return;
+        }
+        var html = "";
+        customers.forEach(function (c) {
+          var active = selectedCrmCustomerId === c.id ? " is-active" : "";
+          var stage = c.pipeline_stage || "cold_call";
+          html +=
+            "<button type='button' class='crm-customer-row" +
+            active +
+            "' data-customer-id='" +
+            c.id +
+            "'>" +
+            "<span class='crm-customer-name'>" +
+            escapeHtml(c.name || "(unnamed)") +
+            "</span>" +
+            "<span class='crm-pipeline-badge crm-stage-" +
+            escapeHtml(stage) +
+            "'>" +
+            escapeHtml(crmPipelineLabel(stage)) +
+            "</span>" +
+            "<span class='crm-customer-meta'>" +
+            escapeHtml(c.company || c.email || c.phone || "—") +
+            "</span>" +
+            (c.email
+              ? "<span class='crm-row-email-action'>Reply via email →</span>"
+              : "") +
+            "</button>";
+        });
+        listEl.innerHTML = html;
+        listEl.querySelectorAll(".crm-customer-row").forEach(function (btn) {
+          btn.onclick = function (ev) {
+            if (crmListDidDrag) return;
+            if (ev.target && ev.target.classList.contains("crm-row-email-action")) {
+              ev.preventDefault();
+              ev.stopPropagation();
+              var cid = parseInt(btn.getAttribute("data-customer-id"), 10);
+              var cust = crmCustomersCache.find(function (c) {
+                return c.id === cid;
+              });
+              if (cust) crmReplyViaEmailFromCustomer(cust);
+              return;
+            }
+            selectedCrmCustomerId = parseInt(btn.getAttribute("data-customer-id"), 10);
+            crmFormMode = "edit";
+            openCrmCustomer(selectedCrmCustomerId).then(function () {
+              renderCrmKanban(crmCustomersCache);
+              renderCrmCustomerList(crmCustomersCache);
+            });
+          };
+        });
+        bindCrmListDrag();
+      }
+      var inboxEmails = [];
+      var selectedInboxIndex = null;
+      var inboxComposeFromCrm = null;
 
       function escapeHtml(s) {
         return String(s)
@@ -438,6 +1053,240 @@ python3 -m demo.test_bot</pre>
         return html;
       }
 
+      function formatDashCalendarWhen(ev) {
+        if (!ev.start) return "";
+        try {
+          var d = new Date(ev.start);
+          if (isNaN(d.getTime())) return String(ev.start);
+          if (ev.all_day) {
+            return d.toLocaleDateString(undefined, {
+              weekday: "short",
+              month: "short",
+              day: "numeric",
+            });
+          }
+          return d.toLocaleString(undefined, {
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        } catch (e) {
+          return String(ev.start);
+        }
+      }
+
+      var selectedTelegramChatId = null;
+      var lastDashboardData = null;
+      var dashCalendarView = { year: new Date().getFullYear(), month: new Date().getMonth() };
+      var dashCalendarEvents = [];
+
+      function pad2(n) {
+        return String(n).padStart(2, "0");
+      }
+
+      function eventDayKey(isoOrStr, allDay) {
+        if (!isoOrStr) return "";
+        if (allDay && String(isoOrStr).length >= 10) return String(isoOrStr).slice(0, 10);
+        var d = new Date(isoOrStr);
+        if (isNaN(d.getTime())) return "";
+        return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+      }
+
+      function groupEventsByDay(items) {
+        var map = {};
+        (items || []).forEach(function (ev, idx) {
+          var key = eventDayKey(ev.start, ev.all_day);
+          if (!key) return;
+          if (!map[key]) map[key] = [];
+          map[key].push({ ev: ev, idx: idx });
+        });
+        return map;
+      }
+
+      function monthLabel(year, month) {
+        try {
+          return new Date(year, month, 1).toLocaleDateString(undefined, {
+            month: "long",
+            year: "numeric",
+          });
+        } catch (e) {
+          return year + "-" + pad2(month + 1);
+        }
+      }
+
+      function renderDashCalendarGrid(items, viewYear, viewMonth) {
+        var byDay = groupEventsByDay(items);
+        var first = new Date(viewYear, viewMonth, 1);
+        var startPad = (first.getDay() + 6) % 7;
+        var daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+        var todayKey = eventDayKey(new Date().toISOString(), false);
+        var weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+        var html = '<div class="dash-cal-grid">';
+        html += '<div class="dash-cal-weekdays">';
+        weekdays.forEach(function (wd) {
+          html += "<span>" + wd + "</span>";
+        });
+        html += "</div><div class=\"dash-cal-cells\">";
+        var cell = 0;
+        for (var i = 0; i < startPad; i++) {
+          html += '<div class="dash-cal-day is-empty" aria-hidden="true"></div>';
+          cell++;
+        }
+        for (var day = 1; day <= daysInMonth; day++) {
+          var key =
+            viewYear + "-" + pad2(viewMonth + 1) + "-" + pad2(day);
+          var dayEvents = byDay[key] || [];
+          var classes = "dash-cal-day";
+          if (key === todayKey) classes += " is-today";
+          if (dayEvents.length) classes += " has-events";
+          html +=
+            '<button type="button" class="' +
+            classes +
+            '" data-day="' +
+            key +
+            '" title="Open Calendar">';
+          html += '<span class="dash-cal-day-num">' + day + "</span>";
+          html += '<span class="dash-cal-day-events">';
+          dayEvents.slice(0, 2).forEach(function (wrap) {
+            html +=
+              '<span class="dash-cal-event" data-event-idx="' +
+              wrap.idx +
+              '" title="' +
+              escapeHtml(wrap.ev.title || "") +
+              '">' +
+              escapeHtml(wrap.ev.title || "(Event)") +
+              "</span>";
+          });
+          if (dayEvents.length > 2) {
+            html +=
+              '<span class="dash-cal-more">+' +
+              (dayEvents.length - 2) +
+              " more</span>";
+          }
+          html += "</span></button>";
+          cell++;
+        }
+        while (cell % 7 !== 0) {
+          html += '<div class="dash-cal-day is-empty" aria-hidden="true"></div>';
+          cell++;
+        }
+        html += "</div></div>";
+        html += '<div id="dash-cal-day-detail" class="dash-cal-day-detail hidden"></div>';
+        return html;
+      }
+
+      function bindDashCalendar(container) {
+        if (!container) return;
+        container.querySelectorAll(".dash-cal-day:not(.is-empty)").forEach(function (btn) {
+          btn.onclick = function (ev) {
+            if (ev.target && ev.target.classList.contains("dash-cal-event")) return;
+            var day = btn.getAttribute("data-day");
+            showDashCalDayDetail(day);
+          };
+        });
+        container.querySelectorAll(".dash-cal-event").forEach(function (chip) {
+          chip.onclick = function (ev) {
+            ev.stopPropagation();
+            var idx = parseInt(chip.getAttribute("data-event-idx"), 10);
+            var item = dashCalendarEvents[idx];
+            showDashCalDayDetail(item ? eventDayKey(item.start, item.all_day) : null, idx);
+          };
+        });
+      }
+
+      function showDashCalDayDetail(dayKey, focusIdx) {
+        if (!dayKey) {
+          selectPane("calendar");
+          return;
+        }
+        var detail = document.getElementById("dash-cal-day-detail");
+        if (!detail) {
+          selectPane("calendar");
+          return;
+        }
+        var byDay = groupEventsByDay(dashCalendarEvents);
+        var dayEvents = byDay[dayKey] || [];
+        var html =
+          "<div class='dash-cal-detail-head'>" +
+          "<strong>" +
+          escapeHtml(dayKey) +
+          "</strong>" +
+          "<button type='button' class='btn-text dash-cal-open-module'>Open Calendar →</button>" +
+          "</div>";
+        if (!dayEvents.length) {
+          html += "<p class='hint'>No events this day.</p>";
+        } else {
+          html += "<ul class='dash-cal-detail-list'>";
+          dayEvents.forEach(function (wrap) {
+            html +=
+              "<li><button type='button' class='dash-cal-detail-event' data-event-idx='" +
+              wrap.idx +
+              "'>" +
+              "<span class='dash-cal-detail-time'>" +
+              escapeHtml(formatDashCalendarWhen(wrap.ev)) +
+              "</span> " +
+              escapeHtml(wrap.ev.title || "(Event)") +
+              "</button></li>";
+          });
+          html += "</ul>";
+        }
+        detail.innerHTML = html;
+        detail.classList.remove("hidden");
+        detail.querySelectorAll(".dash-cal-open-module, .dash-cal-detail-event").forEach(function (btn) {
+          btn.onclick = function () {
+            selectPane("calendar");
+          };
+        });
+        if (typeof focusIdx === "number") {
+          var target = detail.querySelector("[data-event-idx='" + focusIdx + "']");
+          if (target) target.classList.add("is-focused");
+        }
+      }
+
+      function updateDashCalendarView() {
+        var label = document.getElementById("dash-cal-month-label");
+        if (label) label.textContent = monthLabel(dashCalendarView.year, dashCalendarView.month);
+        var calEl = document.getElementById("dash-calendar");
+        if (!calEl || !lastDashboardData) return;
+        var block = lastDashboardData.calendar || {};
+        if (block.error) {
+          calEl.innerHTML = renderDashEmpty("Calendar unavailable: " + block.error);
+          return;
+        }
+        dashCalendarEvents = block.items || [];
+        calEl.innerHTML = renderDashCalendarGrid(
+          dashCalendarEvents,
+          dashCalendarView.year,
+          dashCalendarView.month
+        );
+        bindDashCalendar(calEl);
+      }
+
+      function renderDashCalendar(data) {
+        var block = data.calendar || {};
+        var accountEl = document.getElementById("dash-calendar-account");
+        if (accountEl) {
+          if (block.account && !block.error) {
+            accountEl.textContent =
+              "Same account as Inbox · " + block.account;
+          } else {
+            accountEl.textContent = "";
+          }
+        }
+        lastDashboardData = data;
+        if (block.error) {
+          return renderDashEmpty("Calendar unavailable: " + block.error);
+        }
+        dashCalendarEvents = block.items || [];
+        return renderDashCalendarGrid(
+          dashCalendarEvents,
+          dashCalendarView.year,
+          dashCalendarView.month
+        );
+      }
+
       function renderDashTelegram(data) {
         var items = (data.waiting_telegram && data.waiting_telegram.items) || [];
         if (!items.length) return renderDashEmpty("No chats waiting for a reply.");
@@ -471,6 +1320,8 @@ python3 -m demo.test_bot</pre>
         var unread = (data.unread_emails && data.unread_emails.count) || 0;
         var notif = (data.notifications && data.notifications.count) || 0;
         var tg = (data.waiting_telegram && data.waiting_telegram.count) || 0;
+        var cal = (data.calendar && data.calendar.count) || 0;
+        var todos = (data.daily_todos && data.daily_todos.open_count) || 0;
         document.querySelectorAll("[data-stat='unread']").forEach(function (el) {
           el.textContent = String(unread);
         });
@@ -480,26 +1331,63 @@ python3 -m demo.test_bot</pre>
         document.querySelectorAll("[data-stat='telegram']").forEach(function (el) {
           el.textContent = String(tg);
         });
-        ["stat-unread", "stat-notifications", "stat-telegram"].forEach(function (id, i) {
-          var counts = [unread, notif, tg];
-          var el = document.getElementById(id);
-          if (el) el.classList.toggle("has-items", counts[i] > 0);
+        document.querySelectorAll("[data-stat='calendar']").forEach(function (el) {
+          el.textContent = String(cal);
         });
+        document.querySelectorAll("[data-stat='todos']").forEach(function (el) {
+          el.textContent = String(todos);
+        });
+        [
+          "stat-unread",
+          "stat-notifications",
+          "stat-telegram",
+          "stat-calendar",
+          "stat-todos",
+        ].forEach(function (id, i) {
+          var counts = [unread, notif, tg, cal, todos];
+          var keys = ["unread", "notifications", "telegram", "calendar", "todos"];
+          document.querySelectorAll('[data-stat-card="' + keys[i] + '"]').forEach(function (el) {
+            el.classList.toggle("has-items", counts[i] > 0);
+          });
+        });
+      }
+
+      function initDashStatsCarousel() {
+        var track = document.getElementById("dash-stats-track");
+        var set = document.getElementById("dash-stats-set");
+        if (!track || !set || track.dataset.ready === "1") return;
+        var clone = set.cloneNode(true);
+        clone.setAttribute("aria-hidden", "true");
+        clone.removeAttribute("id");
+        clone.querySelectorAll("[id]").forEach(function (el) {
+          el.removeAttribute("id");
+        });
+        track.appendChild(clone);
+        track.dataset.ready = "1";
       }
 
       async function loadDashboard() {
         var emailsEl = document.getElementById("dash-emails");
         var notifEl = document.getElementById("dash-notifications");
         var tgEl = document.getElementById("dash-telegram");
+        var calEl = document.getElementById("dash-calendar");
+        var todosEl = document.getElementById("dash-todos");
         var updatedEl = document.getElementById("dash-updated");
-        if (!emailsEl || !notifEl || !tgEl) return;
+        if (!emailsEl || !notifEl || !tgEl || !calEl || !todosEl) return;
         try {
-          var res = await fetch("/api/dashboard/summary");
+          var res = await fetch("/api/dashboard/summary?cal_days=45");
           var data = await res.json().catch(function () {
             return {};
           });
           if (!res.ok) throw new Error(data.error || res.statusText || "Request failed");
           updateDashStats(data);
+          lastDashboardData = data;
+          var label = document.getElementById("dash-cal-month-label");
+          if (label) label.textContent = monthLabel(dashCalendarView.year, dashCalendarView.month);
+          calEl.innerHTML = renderDashCalendar(data);
+          bindDashCalendar(calEl);
+          todosEl.innerHTML = renderDashTodos(data);
+          bindDashTodoRows(todosEl);
           emailsEl.innerHTML = renderDashEmails(data);
           notifEl.innerHTML = renderDashNotifications(data);
           tgEl.innerHTML = renderDashTelegram(data);
@@ -514,6 +1402,8 @@ python3 -m demo.test_bot</pre>
           }
         } catch (e) {
           var err = renderDashEmpty(String(e.message || e));
+          if (calEl) calEl.innerHTML = err;
+          if (todosEl) todosEl.innerHTML = err;
           emailsEl.innerHTML = err;
           notifEl.innerHTML = err;
           tgEl.innerHTML = err;
@@ -542,12 +1432,823 @@ python3 -m demo.test_bot</pre>
       var btnDashRefresh = document.getElementById("btn-dashboard-refresh");
       if (btnDashRefresh) btnDashRefresh.onclick = loadDashboard;
 
+      var btnDashCalPrev = document.getElementById("btn-dash-cal-prev");
+      if (btnDashCalPrev) {
+        btnDashCalPrev.onclick = function () {
+          dashCalendarView.month -= 1;
+          if (dashCalendarView.month < 0) {
+            dashCalendarView.month = 11;
+            dashCalendarView.year -= 1;
+          }
+          updateDashCalendarView();
+        };
+      }
+      var btnDashCalNext = document.getElementById("btn-dash-cal-next");
+      if (btnDashCalNext) {
+        btnDashCalNext.onclick = function () {
+          dashCalendarView.month += 1;
+          if (dashCalendarView.month > 11) {
+            dashCalendarView.month = 0;
+            dashCalendarView.year += 1;
+          }
+          updateDashCalendarView();
+        };
+      }
+
+      function toDatetimeLocalValue(d) {
+        var pad = function (n) {
+          return String(n).padStart(2, "0");
+        };
+        return (
+          d.getFullYear() +
+          "-" +
+          pad(d.getMonth() + 1) +
+          "-" +
+          pad(d.getDate()) +
+          "T" +
+          pad(d.getHours()) +
+          ":" +
+          pad(d.getMinutes())
+        );
+      }
+
+      function formatCalendarWhen(ev) {
+        if (!ev.start) return "";
+        try {
+          var d = new Date(ev.start);
+          if (isNaN(d.getTime())) return String(ev.start);
+          if (ev.all_day) {
+            return d.toLocaleDateString(undefined, {
+              weekday: "short",
+              month: "short",
+              day: "numeric",
+            });
+          }
+          return d.toLocaleString(undefined, {
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        } catch (e) {
+          return String(ev.start);
+        }
+      }
+
+      function updateCalendarInputTypes() {
+        var allDayEl = document.getElementById("cal-all-day");
+        var startEl = document.getElementById("cal-start");
+        var endEl = document.getElementById("cal-end");
+        if (!allDayEl || !startEl || !endEl) return;
+        var allDay = allDayEl.checked;
+        startEl.type = allDay ? "date" : "datetime-local";
+        endEl.type = allDay ? "date" : "datetime-local";
+      }
+
+      function setDefaultCalendarTimes() {
+        var startEl = document.getElementById("cal-start");
+        var endEl = document.getElementById("cal-end");
+        var allDayEl = document.getElementById("cal-all-day");
+        if (!startEl || !endEl || !allDayEl) return;
+        updateCalendarInputTypes();
+        var now = new Date();
+        if (allDayEl.checked) {
+          var today = now.toISOString().slice(0, 10);
+          if (!startEl.value) startEl.value = today;
+          if (!endEl.value) endEl.value = today;
+          return;
+        }
+        now.setMinutes(0, 0, 0);
+        now.setHours(now.getHours() + 1);
+        if (!startEl.value) startEl.value = toDatetimeLocalValue(now);
+        if (!endEl.value) {
+          endEl.value = toDatetimeLocalValue(new Date(now.getTime() + 60 * 60 * 1000));
+        }
+      }
+
+      function clearCalendarForm() {
+        document.getElementById("cal-title").value = "";
+        document.getElementById("cal-all-day").checked = false;
+        document.getElementById("cal-start").value = "";
+        document.getElementById("cal-end").value = "";
+        document.getElementById("cal-location").value = "";
+        document.getElementById("cal-attendees").value = "";
+        document.getElementById("cal-description").value = "";
+        var statusEl = document.getElementById("calendar-form-status");
+        if (statusEl) statusEl.textContent = "";
+        updateCalendarInputTypes();
+        setDefaultCalendarTimes();
+      }
+
+      function renderCalendarEventList(events, account) {
+        var listEl = document.getElementById("calendar-event-list");
+        var accountEl = document.getElementById("calendar-account");
+        if (accountEl) {
+          accountEl.textContent = account ? "Account: " + account + " · next 30 days" : "";
+        }
+        if (!listEl) return;
+        if (!events.length) {
+          listEl.innerHTML = "<p class='calendar-list-empty'>No upcoming events.</p>";
+          return;
+        }
+        var html = "";
+        events.forEach(function (ev) {
+          html +=
+            "<article class='calendar-event-row'>" +
+            "<span class='calendar-event-when'>" +
+            escapeHtml(formatCalendarWhen(ev)) +
+            "</span>" +
+            "<span class='calendar-event-title'>" +
+            escapeHtml(ev.title || "(No title)") +
+            "</span>" +
+            (ev.location
+              ? "<span class='calendar-event-meta'>" + escapeHtml(ev.location) + "</span>"
+              : "") +
+            (ev.attendees && ev.attendees.length
+              ? "<span class='calendar-event-meta'>Guests: " +
+                escapeHtml(ev.attendees.join(", ")) +
+                "</span>"
+              : "") +
+            "</article>";
+        });
+        listEl.innerHTML = html;
+      }
+
+      async function loadCalendarEvents() {
+        var listEl = document.getElementById("calendar-event-list");
+        if (!listEl) return;
+        listEl.innerHTML = "<p class='calendar-list-empty'>Loading…</p>";
+        try {
+          var res = await fetch("/api/calendar/events?days=30&limit=50");
+          var data = await res.json().catch(function () {
+            return {};
+          });
+          if (!res.ok) throw new Error(data.error || res.statusText || "Request failed");
+          renderCalendarEventList(data.events || [], data.account || "");
+        } catch (e) {
+          listEl.innerHTML =
+            "<p class='calendar-list-empty err'>" + escapeHtml(String(e.message || e)) + "</p>";
+        }
+      }
+
+      async function saveCalendarEvent(ev) {
+        if (ev) ev.preventDefault();
+        var statusEl = document.getElementById("calendar-form-status");
+        var btn = document.getElementById("btn-calendar-create");
+        var allDay = document.getElementById("cal-all-day").checked;
+        var startRaw = document.getElementById("cal-start").value;
+        var endRaw = document.getElementById("cal-end").value;
+        var title = (document.getElementById("cal-title").value || "").trim();
+        if (!title || !startRaw) {
+          if (statusEl) statusEl.textContent = "Title and start are required.";
+          return;
+        }
+        var payload = {
+          title: title,
+          all_day: allDay,
+          start: allDay ? startRaw : new Date(startRaw).toISOString(),
+          end: endRaw ? (allDay ? endRaw : new Date(endRaw).toISOString()) : null,
+          location: document.getElementById("cal-location").value,
+          attendees: document.getElementById("cal-attendees").value,
+          description: document.getElementById("cal-description").value,
+        };
+        if (btn) btn.disabled = true;
+        if (statusEl) statusEl.textContent = "Creating event…";
+        try {
+          var res = await fetch("/api/calendar/events", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          var data = await res.json().catch(function () {
+            return {};
+          });
+          if (!res.ok) throw new Error(data.error || res.statusText || "Request failed");
+          if (statusEl) statusEl.textContent = "Event created" + (payload.attendees ? " — invites sent." : ".");
+          clearCalendarForm();
+          await loadCalendarEvents();
+          if (document.getElementById("pane-overview").classList.contains("active")) {
+            loadDashboard();
+          }
+        } catch (e) {
+          if (statusEl) statusEl.textContent = String(e.message || e);
+        } finally {
+          if (btn) btn.disabled = false;
+        }
+      }
+
+      var calendarForm = document.getElementById("calendar-form");
+      if (calendarForm) calendarForm.addEventListener("submit", saveCalendarEvent);
+      var btnCalendarRefresh = document.getElementById("btn-calendar-refresh");
+      if (btnCalendarRefresh) btnCalendarRefresh.onclick = loadCalendarEvents;
+      var btnCalendarClear = document.getElementById("btn-calendar-clear");
+      if (btnCalendarClear) btnCalendarClear.onclick = clearCalendarForm;
+      var calAllDay = document.getElementById("cal-all-day");
+      if (calAllDay) {
+        calAllDay.addEventListener("change", function () {
+          document.getElementById("cal-start").value = "";
+          document.getElementById("cal-end").value = "";
+          updateCalendarInputTypes();
+          setDefaultCalendarTimes();
+        });
+      }
+
+      function defaultTodoEventTimes() {
+        var now = new Date();
+        now.setMinutes(0, 0, 0);
+        now.setHours(now.getHours() + 1);
+        return {
+          start: toDatetimeLocalValue(now),
+          end: toDatetimeLocalValue(new Date(now.getTime() + 60 * 60 * 1000)),
+        };
+      }
+
+      function renderTodoItemHtml(item, full) {
+        var isTask = item.item_type === "task";
+        var done = !!item.is_done;
+        var html =
+          "<div class='todo-item" +
+          (done ? " is-done" : "") +
+          "' data-todo-id='" +
+          item.id +
+          "'>";
+        if (isTask) {
+          html +=
+            "<label class='todo-item-check'>" +
+            "<input type='checkbox' class='todo-done-cb'" +
+            (done ? " checked" : "") +
+            " aria-label='Mark done' />" +
+            "</label>";
+        } else {
+          html += "<span class='todo-note-badge'>Note</span>";
+        }
+        html +=
+          "<span class='todo-item-text'>" + escapeHtml(item.content || "") + "</span>";
+        if (full) {
+          var times = defaultTodoEventTimes();
+          html +=
+            "<div class='todo-item-actions'>" +
+            "<button type='button' class='btn-text todo-btn-event'>Create event</button>" +
+            "<button type='button' class='btn-text todo-btn-delete'>Delete</button>" +
+            "</div>" +
+            "<div class='todo-event-form hidden' data-event-form='" +
+            item.id +
+            "'>" +
+            "<p class='hint todo-event-hint'>Create a Google Calendar meeting from this item.</p>" +
+            "<div class='row two'>" +
+            "<div><label>Start</label>" +
+            "<input type='datetime-local' class='todo-ev-start' value='" +
+            escapeHtml(times.start) +
+            "' /></div>" +
+            "<div><label>End</label>" +
+            "<input type='datetime-local' class='todo-ev-end' value='" +
+            escapeHtml(times.end) +
+            "' /></div>" +
+            "</div>" +
+            "<div><label>Location</label><input type='text' class='todo-ev-location' placeholder='Optional' /></div>" +
+            "<div><label>Invite guests</label><input type='text' class='todo-ev-attendees' placeholder='email@example.com' /></div>" +
+            "<button type='button' class='primary todo-btn-event-save'>Create calendar event</button>" +
+            "<p class='hint todo-ev-status'></p>" +
+            "</div>";
+        }
+        html += "</div>";
+        return html;
+      }
+
+      function renderDashTodos(data) {
+        var items = (data.daily_todos && data.daily_todos.items) || [];
+        if (!items.length) return renderDashEmpty("Nothing on today's list yet.");
+        var html = "<ul class='dash-items dash-todo-items'>";
+        items.forEach(function (item) {
+          html += "<li class='dash-item dash-todo-item'>" + renderTodoItemHtml(item, false) + "</li>";
+        });
+        html += "</ul>";
+        return html;
+      }
+
+      function bindDashTodoRows(container) {
+        if (!container) return;
+        container.querySelectorAll(".todo-done-cb").forEach(function (cb) {
+          cb.onchange = function () {
+            var row = cb.closest(".todo-item");
+            if (!row) return;
+            var id = parseInt(row.getAttribute("data-todo-id"), 10);
+            patchTodoDone(id, cb.checked);
+          };
+        });
+      }
+
+      function renderTodoListItems(items, listDate) {
+        var dateEl = document.getElementById("todo-list-date");
+        if (dateEl) {
+          dateEl.textContent = listDate ? "Today · " + listDate : "Today";
+        }
+        var listEl = document.getElementById("todo-list");
+        if (!listEl) return;
+        if (!items.length) {
+          listEl.innerHTML = "<p class='todo-list-empty'>Nothing on today's list. Add a note or checklist item above.</p>";
+          return;
+        }
+        var html = "";
+        items.forEach(function (item) {
+          html += renderTodoItemHtml(item, true);
+        });
+        listEl.innerHTML = html;
+        bindTodoListActions(listEl);
+      }
+
+      function bindTodoListActions(container) {
+        container.querySelectorAll(".todo-done-cb").forEach(function (cb) {
+          cb.onchange = function () {
+            var row = cb.closest(".todo-item");
+            if (!row) return;
+            patchTodoDone(parseInt(row.getAttribute("data-todo-id"), 10), cb.checked);
+          };
+        });
+        container.querySelectorAll(".todo-btn-delete").forEach(function (btn) {
+          btn.onclick = function () {
+            var row = btn.closest(".todo-item");
+            if (!row) return;
+            deleteTodo(parseInt(row.getAttribute("data-todo-id"), 10));
+          };
+        });
+        container.querySelectorAll(".todo-btn-event").forEach(function (btn) {
+          btn.onclick = function () {
+            var row = btn.closest(".todo-item");
+            if (!row) return;
+            var form = row.querySelector(".todo-event-form");
+            if (form) form.classList.toggle("hidden");
+          };
+        });
+        container.querySelectorAll(".todo-btn-event-save").forEach(function (btn) {
+          btn.onclick = function () {
+            var row = btn.closest(".todo-item");
+            if (!row) return;
+            var id = parseInt(row.getAttribute("data-todo-id"), 10);
+            var form = row.querySelector(".todo-event-form");
+            createTodoEvent(id, form, row.querySelector(".todo-item-text").textContent);
+          };
+        });
+      }
+
+      async function patchTodoDone(todoId, isDone) {
+        try {
+          var res = await fetch("/api/todos/" + encodeURIComponent(todoId), {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ is_done: isDone }),
+          });
+          var data = await res.json().catch(function () {
+            return {};
+          });
+          if (!res.ok) throw new Error(data.error || res.statusText || "Request failed");
+          refreshTodosEverywhere();
+        } catch (e) {
+          alert(String(e.message || e));
+        }
+      }
+
+      async function deleteTodo(todoId) {
+        if (!window.confirm("Remove this item from today's list?")) return;
+        try {
+          var res = await fetch("/api/todos/" + encodeURIComponent(todoId), { method: "DELETE" });
+          var data = await res.json().catch(function () {
+            return {};
+          });
+          if (!res.ok) throw new Error(data.error || res.statusText || "Request failed");
+          refreshTodosEverywhere();
+        } catch (e) {
+          alert(String(e.message || e));
+        }
+      }
+
+      async function addTodo(content, asTask, statusEl) {
+        var text = (content || "").trim();
+        if (!text) {
+          if (statusEl) statusEl.textContent = "Enter something to add.";
+          return;
+        }
+        if (statusEl) statusEl.textContent = "Adding…";
+        try {
+          var res = await fetch("/api/todos", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              content: text,
+              item_type: asTask ? "task" : "note",
+            }),
+          });
+          var data = await res.json().catch(function () {
+            return {};
+          });
+          if (!res.ok) throw new Error(data.error || res.statusText || "Request failed");
+          if (statusEl) statusEl.textContent = "";
+          refreshTodosEverywhere();
+          return true;
+        } catch (e) {
+          if (statusEl) statusEl.textContent = String(e.message || e);
+          return false;
+        }
+      }
+
+      async function createTodoEvent(todoId, formEl, title) {
+        if (!formEl) return;
+        var statusEl = formEl.querySelector(".todo-ev-status");
+        var startRaw = formEl.querySelector(".todo-ev-start").value;
+        if (!startRaw) {
+          if (statusEl) statusEl.textContent = "Start time is required.";
+          return;
+        }
+        var endRaw = formEl.querySelector(".todo-ev-end").value;
+        if (statusEl) statusEl.textContent = "Creating event…";
+        try {
+          var res = await fetch("/api/todos/" + encodeURIComponent(todoId) + "/event", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              title: title,
+              start: new Date(startRaw).toISOString(),
+              end: endRaw ? new Date(endRaw).toISOString() : null,
+              location: formEl.querySelector(".todo-ev-location").value,
+              attendees: formEl.querySelector(".todo-ev-attendees").value,
+            }),
+          });
+          var data = await res.json().catch(function () {
+            return {};
+          });
+          if (!res.ok) throw new Error(data.error || res.statusText || "Request failed");
+          if (statusEl) statusEl.textContent = "Calendar event created.";
+          formEl.classList.add("hidden");
+          if (document.getElementById("pane-overview").classList.contains("active")) {
+            loadDashboard();
+          }
+          if (document.getElementById("pane-calendar").classList.contains("active")) {
+            loadCalendarEvents();
+          }
+        } catch (e) {
+          if (statusEl) statusEl.textContent = String(e.message || e);
+        }
+      }
+
+      async function loadTodoList() {
+        var listEl = document.getElementById("todo-list");
+        if (!listEl) return;
+        listEl.innerHTML = "<p class='todo-list-empty'>Loading…</p>";
+        try {
+          var res = await fetch("/api/todos?include_done=1");
+          var data = await res.json().catch(function () {
+            return {};
+          });
+          if (!res.ok) throw new Error(data.error || res.statusText || "Request failed");
+          renderTodoListItems(data.todos || [], data.list_date || "");
+        } catch (e) {
+          listEl.innerHTML =
+            "<p class='todo-list-empty err'>" + escapeHtml(String(e.message || e)) + "</p>";
+        }
+      }
+
+      function refreshTodosEverywhere() {
+        loadTodoList();
+        if (document.getElementById("pane-overview").classList.contains("active")) {
+          loadDashboard();
+        }
+      }
+
+      var todoAddForm = document.getElementById("todo-add-form");
+      if (todoAddForm) {
+        todoAddForm.addEventListener("submit", function (ev) {
+          ev.preventDefault();
+          var input = document.getElementById("todo-add-input");
+          var asTask = document.getElementById("todo-add-as-task").checked;
+          var statusEl = document.getElementById("todo-add-status");
+          addTodo(input.value, asTask, statusEl).then(function (ok) {
+            if (ok && input) input.value = "";
+          });
+        });
+      }
+
+      var dashTodoForm = document.getElementById("dash-todo-quick-form");
+      if (dashTodoForm) {
+        dashTodoForm.addEventListener("submit", function (ev) {
+          ev.preventDefault();
+          var input = document.getElementById("dash-todo-input");
+          var asTask = document.getElementById("dash-todo-as-task").checked;
+          addTodo(input.value, asTask, null).then(function (ok) {
+            if (ok && input) input.value = "";
+          });
+        });
+      }
+
+      var btnTodosRefresh = document.getElementById("btn-todos-refresh");
+      if (btnTodosRefresh) btnTodosRefresh.onclick = loadTodoList;
+
+      function updateCrmFormVisibility() {
+        var emptyEl = document.getElementById("crm-detail-empty");
+        var formEl = document.getElementById("crm-form");
+        if (!emptyEl || !formEl) return;
+        if (crmFormMode === "hidden") {
+          emptyEl.classList.remove("hidden");
+          formEl.classList.add("hidden");
+        } else {
+          emptyEl.classList.add("hidden");
+          formEl.classList.remove("hidden");
+          updateCrmReplyEmailButton();
+        }
+      }
+
+      function clearCrmForm() {
+        document.getElementById("crm-name").value = "";
+        document.getElementById("crm-email").value = "";
+        document.getElementById("crm-phone").value = "";
+        document.getElementById("crm-company").value = "";
+        document.getElementById("crm-role").value = "";
+        document.getElementById("crm-notes").value = "";
+        crmPipelineStage = "cold_call";
+        var idEl = document.getElementById("crm-form-id");
+        if (idEl) idEl.textContent = "";
+        var titleEl = document.getElementById("crm-form-title");
+        if (titleEl) titleEl.textContent = "New customer";
+        var statusEl = document.getElementById("crm-form-status");
+        if (statusEl) statusEl.textContent = "";
+        var delBtn = document.getElementById("btn-crm-delete");
+        if (delBtn) delBtn.classList.toggle("hidden", crmFormMode === "create");
+        updateCrmReplyEmailButton();
+      }
+
+      function updateCrmReplyEmailButton() {
+        var btn = document.getElementById("btn-crm-email-reply");
+        var email = (document.getElementById("crm-email").value || "").trim();
+        if (!btn) return;
+        btn.disabled = !email || crmFormMode === "hidden";
+      }
+
+      function setInboxComposeFromCustomer(customer) {
+        if (!customer || !(customer.email || "").trim()) return false;
+        inboxComposeFromCrm = {
+          email: (customer.email || "").trim(),
+          name: (customer.name || "").trim(),
+          company: (customer.company || "").trim(),
+          role: (customer.role || "").trim(),
+          notes: (customer.notes || "").trim(),
+        };
+        return true;
+      }
+
+      function setInboxComposeFromCrmFields() {
+        return setInboxComposeFromCustomer({
+          email: document.getElementById("crm-email").value,
+          name: document.getElementById("crm-name").value,
+          company: document.getElementById("crm-company").value,
+          role: document.getElementById("crm-role").value,
+          notes: document.getElementById("crm-notes").value,
+        });
+      }
+
+      function crmReplyViaEmailFromCustomer(customer) {
+        if (!setInboxComposeFromCustomer(customer)) return;
+        selectedInboxIndex = null;
+        selectPane("inbox");
+        openInboxCrmCompose();
+      }
+
+      function fillCrmForm(customer) {
+        document.getElementById("crm-name").value = customer.name || "";
+        document.getElementById("crm-email").value = customer.email || "";
+        document.getElementById("crm-phone").value = customer.phone || "";
+        document.getElementById("crm-company").value = customer.company || "";
+        document.getElementById("crm-role").value = customer.role || "";
+        document.getElementById("crm-notes").value = customer.notes || "";
+        crmPipelineStage = customer.pipeline_stage || "cold_call";
+        var idEl = document.getElementById("crm-form-id");
+        if (idEl) idEl.textContent = customer.id ? "#" + customer.id : "";
+        var titleEl = document.getElementById("crm-form-title");
+        if (titleEl) titleEl.textContent = customer.name || "Customer";
+        var delBtn = document.getElementById("btn-crm-delete");
+        if (delBtn) delBtn.classList.remove("hidden");
+        updateCrmReplyEmailButton();
+      }
+
+      function crmFormPayload() {
+        return {
+          name: document.getElementById("crm-name").value,
+          email: document.getElementById("crm-email").value,
+          phone: document.getElementById("crm-phone").value,
+          company: document.getElementById("crm-company").value,
+          role: document.getElementById("crm-role").value,
+          notes: document.getElementById("crm-notes").value,
+          pipeline_stage: crmPipelineStage,
+        };
+      }
+
+      async function loadCrmCustomers() {
+        var listEl = document.getElementById("crm-customer-list");
+        if (!listEl) return;
+        listEl.innerHTML = "<p class='crm-list-empty'>Loading…</p>";
+        try {
+          var q = (document.getElementById("crm-search").value || "").trim();
+          var url = "/api/crm/customers?limit=200";
+          if (q) url += "&q=" + encodeURIComponent(q);
+          var res = await fetch(url);
+          var data = await res.json().catch(function () {
+            return {};
+          });
+          if (!res.ok) throw new Error(data.error || res.statusText || "Request failed");
+          var customers = data.customers || [];
+          crmCustomersCache = customers;
+          renderCrmKanban(customers);
+          renderCrmCustomerList(customers);
+        } catch (e) {
+          listEl.innerHTML = "<p class='crm-list-empty err'>" + escapeHtml(String(e.message || e)) + "</p>";
+          renderCrmKanban([]);
+        }
+      }
+
+      async function openCrmCustomer(customerId) {
+        var statusEl = document.getElementById("crm-form-status");
+        try {
+          var res = await fetch("/api/crm/customers/" + encodeURIComponent(customerId));
+          var data = await res.json().catch(function () {
+            return {};
+          });
+          if (!res.ok) throw new Error(data.error || res.statusText || "Request failed");
+          crmFormMode = "edit";
+          selectedCrmCustomerId = customerId;
+          fillCrmForm(data.customer || {});
+          updateCrmFormVisibility();
+          if (statusEl) statusEl.textContent = "";
+        } catch (e) {
+          if (statusEl) statusEl.textContent = String(e.message || e);
+        }
+      }
+
+      function startCrmCreate() {
+        selectedCrmCustomerId = null;
+        crmFormMode = "create";
+        clearCrmForm();
+        updateCrmFormVisibility();
+        document.getElementById("crm-name").focus();
+      }
+
+      function cancelCrmForm() {
+        if (selectedCrmCustomerId !== null) {
+          openCrmCustomer(selectedCrmCustomerId);
+          return;
+        }
+        crmFormMode = "hidden";
+        updateCrmFormVisibility();
+      }
+
+      async function saveCrmCustomer(ev) {
+        if (ev) ev.preventDefault();
+        var statusEl = document.getElementById("crm-form-status");
+        var saveBtn = document.getElementById("btn-crm-save");
+        var payload = crmFormPayload();
+        if (!payload.name.trim()) {
+          if (statusEl) statusEl.textContent = "Name is required.";
+          return;
+        }
+        if (saveBtn) saveBtn.disabled = true;
+        if (statusEl) statusEl.textContent = "Saving…";
+        try {
+          var url =
+            crmFormMode === "create"
+              ? "/api/crm/customers"
+              : "/api/crm/customers/" + encodeURIComponent(selectedCrmCustomerId);
+          var method = crmFormMode === "create" ? "POST" : "PUT";
+          var res = await fetch(url, {
+            method: method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          var data = await res.json().catch(function () {
+            return {};
+          });
+          if (!res.ok) throw new Error(data.error || res.statusText || "Request failed");
+          selectedCrmCustomerId = data.customer.id;
+          crmFormMode = "edit";
+          fillCrmForm(data.customer);
+          if (statusEl) statusEl.textContent = "Saved.";
+          await loadCrmCustomers();
+        } catch (e) {
+          if (statusEl) statusEl.textContent = String(e.message || e);
+        } finally {
+          if (saveBtn) saveBtn.disabled = false;
+        }
+      }
+
+      async function deleteCrmCustomer() {
+        if (selectedCrmCustomerId === null || crmFormMode === "create") return;
+        if (!window.confirm("Delete this customer? Related messages and tasks will be unlinked.")) return;
+        var statusEl = document.getElementById("crm-form-status");
+        if (statusEl) statusEl.textContent = "Deleting…";
+        try {
+          var res = await fetch(
+            "/api/crm/customers/" + encodeURIComponent(selectedCrmCustomerId),
+            { method: "DELETE" }
+          );
+          var data = await res.json().catch(function () {
+            return {};
+          });
+          if (!res.ok) throw new Error(data.error || res.statusText || "Request failed");
+          selectedCrmCustomerId = null;
+          crmFormMode = "hidden";
+          updateCrmFormVisibility();
+          if (statusEl) statusEl.textContent = "";
+          await loadCrmCustomers();
+        } catch (e) {
+          if (statusEl) statusEl.textContent = String(e.message || e);
+        }
+      }
+
+      var crmSearch = document.getElementById("crm-search");
+      if (crmSearch) {
+        var crmSearchTimer = null;
+        crmSearch.addEventListener("input", function () {
+          clearTimeout(crmSearchTimer);
+          crmSearchTimer = setTimeout(loadCrmCustomers, 250);
+        });
+      }
+
+      var crmForm = document.getElementById("crm-form");
+      if (crmForm) crmForm.addEventListener("submit", saveCrmCustomer);
+
+      var btnCrmNew = document.getElementById("btn-crm-new");
+      if (btnCrmNew) btnCrmNew.onclick = startCrmCreate;
+
+      var btnCrmRefresh = document.getElementById("btn-crm-refresh");
+      if (btnCrmRefresh) btnCrmRefresh.onclick = loadCrmCustomers;
+
+      var btnCrmDelete = document.getElementById("btn-crm-delete");
+      if (btnCrmDelete) btnCrmDelete.onclick = deleteCrmCustomer;
+
+      var btnCrmCancel = document.getElementById("btn-crm-cancel");
+      if (btnCrmCancel) btnCrmCancel.onclick = cancelCrmForm;
+
+      var crmEmailInput = document.getElementById("crm-email");
+      if (crmEmailInput) crmEmailInput.addEventListener("input", updateCrmReplyEmailButton);
+
+      function crmReplyViaEmail() {
+        if (!setInboxComposeFromCrmFields()) {
+          var statusEl = document.getElementById("crm-form-status");
+          if (statusEl) statusEl.textContent = "Add an email address first.";
+          return;
+        }
+        selectedInboxIndex = null;
+        selectPane("inbox");
+        openInboxCrmCompose();
+      }
+
+      var btnCrmEmailReply = document.getElementById("btn-crm-email-reply");
+      if (btnCrmEmailReply) btnCrmEmailReply.onclick = crmReplyViaEmail;
+
+      updateCrmFormVisibility();
+
+      function isTelegramGroup(c) {
+        return !!(c && (c.is_group || c.chat_type === "group" || c.chat_type === "supergroup"));
+      }
+
+      function renderTelegramChatRow(c) {
+        var active = selectedTelegramChatId === c.chat_id ? " is-active" : "";
+        var typeLabel = isTelegramGroup(c) ? "Group" : "Direct";
+        var typeCls = isTelegramGroup(c) ? " tg-type-group" : " tg-type-direct";
+        return (
+          "<button type='button' class='tg-chat-row" +
+          active +
+          "' data-chat-id='" +
+          c.chat_id +
+          "'>" +
+          "<span class='tg-chat-row-topline'>" +
+          "<span class='tg-chat-row-title'>" +
+          escapeHtml(c.title || "") +
+          "</span>" +
+          "<span class='tg-chat-type-badge" +
+          typeCls +
+          "'>" +
+          escapeHtml(typeLabel) +
+          "</span>" +
+          "</span>" +
+          "<span class='tg-chat-row-meta'>" +
+          escapeHtml(String(c.message_count)) +
+          " msgs · " +
+          escapeHtml(String(c.photo_count)) +
+          " photos</span>" +
+          "<span class='tg-chat-row-preview'>" +
+          escapeHtml(c.preview || "") +
+          "</span>" +
+          "<span class='tg-chat-row-time'>" +
+          escapeHtml(c.last_activity || "") +
+          "</span>" +
+          "</button>"
+        );
+      }
+
       async function loadTelegramChatList() {
         var listEl = document.getElementById("tg-chat-list");
         var statusEl = document.getElementById("tg-status");
         if (!listEl) return;
         try {
-          var res = await fetch("/api/telegram/chats");
+          var res = await fetch("/api/telegram/chats?sync=1");
           var data = await res.json().catch(function () {
             return {};
           });
@@ -555,7 +2256,7 @@ python3 -m demo.test_bot</pre>
           var chats = data.chats || [];
           if (!chats.length) {
             listEl.innerHTML =
-              "<p class='tg-list-empty'>No chats yet. Send a message or photo to the bot.</p>";
+              "<p class='tg-list-empty'>No chats or groups yet. Message the bot or add it to a group.</p>";
             selectedTelegramChatId = null;
             updateTelegramDetailVisibility();
             if (statusEl) statusEl.textContent = "";
@@ -572,31 +2273,23 @@ python3 -m demo.test_bot</pre>
           if (selectedTelegramChatId === null) {
             selectedTelegramChatId = chats[0].chat_id;
           }
-          var html = "";
-          chats.forEach(function (c) {
-            var active = selectedTelegramChatId === c.chat_id ? " is-active" : "";
-            html +=
-              "<button type='button' class='tg-chat-row" +
-              active +
-              "' data-chat-id='" +
-              c.chat_id +
-              "'>" +
-              "<span class='tg-chat-row-title'>" +
-              escapeHtml(c.title || "") +
-              "</span>" +
-              "<span class='tg-chat-row-meta'>" +
-              escapeHtml(String(c.message_count)) +
-              " msgs · " +
-              escapeHtml(String(c.photo_count)) +
-              " photos</span>" +
-              "<span class='tg-chat-row-preview'>" +
-              escapeHtml(c.preview || "") +
-              "</span>" +
-              "<span class='tg-chat-row-time'>" +
-              escapeHtml(c.last_activity || "") +
-              "</span>" +
-              "</button>";
+          var groups = chats.filter(isTelegramGroup);
+          var direct = chats.filter(function (c) {
+            return !isTelegramGroup(c);
           });
+          var html = "";
+          if (groups.length) {
+            html += "<div class='tg-chat-section-label'>Groups (" + groups.length + ")</div>";
+            groups.forEach(function (c) {
+              html += renderTelegramChatRow(c);
+            });
+          }
+          if (direct.length) {
+            html += "<div class='tg-chat-section-label'>Direct messages (" + direct.length + ")</div>";
+            direct.forEach(function (c) {
+              html += renderTelegramChatRow(c);
+            });
+          }
           listEl.innerHTML = html;
           listEl.querySelectorAll(".tg-chat-row").forEach(function (btn) {
             btn.onclick = function () {
@@ -606,6 +2299,18 @@ python3 -m demo.test_bot</pre>
               });
             };
           });
+          var selected = chats.find(function (c) {
+            return c.chat_id === selectedTelegramChatId;
+          });
+          var titleEl = document.getElementById("tg-detail-title");
+          if (titleEl && selected) {
+            titleEl.textContent =
+              (isTelegramGroup(selected) ? "Group · " : "") + (selected.title || "Chat " + selected.chat_id);
+          }
+          if (statusEl) {
+            statusEl.textContent =
+              chats.length + " chat(s)" + (data.groups ? ", " + data.groups + " group(s)" : "") + ".";
+          }
         } catch (e) {
           listEl.innerHTML = "<p class='tg-list-empty err'>" + escapeHtml(String(e.message || e)) + "</p>";
         }
@@ -837,6 +2542,69 @@ python3 -m demo.test_bot</pre>
         el.classList.toggle("err", !ok);
       }
 
+      function renderSocialSuggestions(platform, suggestions) {
+        var wrap = document.getElementById("sm-suggestions-" + platform);
+        if (!wrap) return;
+        wrap.innerHTML = "";
+        if (!suggestions || !suggestions.length) {
+          wrap.textContent = "Alternatif yok.";
+          return;
+        }
+        suggestions.forEach(function (text, idx) {
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "sm-suggestion-chip";
+          btn.textContent = "Şablon " + (idx + 1);
+          btn.title = text;
+          btn.onclick = function () {
+            var out = document.getElementById("sm-out-" + platform);
+            if (out) setOut(out, text, true);
+          };
+          wrap.appendChild(btn);
+        });
+      }
+
+      async function runSocialDraft(platform) {
+        var notesEl = document.getElementById("sm-notes-" + platform);
+        var outEl = document.getElementById("sm-out-" + platform);
+        if (!notesEl || !outEl) return;
+        outEl.textContent = "…";
+        var suggWrap = document.getElementById("sm-suggestions-" + platform);
+        if (suggWrap) suggWrap.textContent = "…";
+        try {
+          var data = await postJSON("/api/social/draft", {
+            platform: platform,
+            notes: notesEl.value,
+          });
+          setOut(outEl, data.draft || "", true);
+          renderSocialSuggestions(platform, data.suggestions || []);
+        } catch (e) {
+          setOut(outEl, String(e.message || e), false);
+          if (suggWrap) suggWrap.textContent = "";
+        }
+      }
+
+      document.getElementById("btn-sm-draft-linkedin").onclick = function () {
+        runSocialDraft("linkedin");
+      };
+      document.getElementById("btn-sm-draft-instagram").onclick = function () {
+        runSocialDraft("instagram");
+      };
+
+      document.querySelectorAll(".sm-copy-btn").forEach(function (btn) {
+        btn.onclick = function () {
+          var platform = btn.getAttribute("data-sm-copy");
+          var out = document.getElementById("sm-out-" + platform);
+          if (!out || !out.textContent || out.classList.contains("err")) return;
+          navigator.clipboard.writeText(out.textContent).then(function () {
+            btn.textContent = "Kopyalandı";
+            setTimeout(function () {
+              btn.textContent = "Kopyala";
+            }, 1500);
+          });
+        };
+      });
+
       document.getElementById("btn-classify").onclick = async () => {
         const out = document.getElementById("cls-out");
         out.textContent = "…";
@@ -847,21 +2615,6 @@ python3 -m demo.test_bot</pre>
             sender: document.getElementById("cls-sender").value,
           });
           setOut(out, "Category: " + data.category, true);
-        } catch (e) {
-          setOut(out, String(e.message || e), false);
-        }
-      };
-
-      document.getElementById("btn-draft").onclick = async () => {
-        const out = document.getElementById("dr-out");
-        out.textContent = "…";
-        try {
-          const data = await postJSON("/api/draft", {
-            text: document.getElementById("dr-text").value,
-            category: document.getElementById("dr-category").value,
-            subject: document.getElementById("dr-subject").value,
-          });
-          setOut(out, data.draft || "", true);
         } catch (e) {
           setOut(out, String(e.message || e), false);
         }
@@ -883,29 +2636,283 @@ python3 -m demo.test_bot</pre>
         }
       };
 
-      document.getElementById("btn-inbox").onclick = async () => {
-        const out = document.getElementById("in-out");
-        out.textContent = "Loading…";
-        const n = document.getElementById("in-n").value || "5";
-        try {
-          const res = await fetch("/api/inbox?n=" + encodeURIComponent(n));
-          const data = await res.json();
-          if (!data.ok) throw new Error(data.error || "Failed");
-          const lines = (data.emails || []).map(
-            (e, i) =>
-              (i + 1) +
-              ". " +
-              (e.subject || "(no subject)") +
-              "\n   From: " +
-              (e.from_addr || e.from_raw || "?") +
-              "\n   " +
-              (e.preview || "").slice(0, 200)
-          );
-          setOut(out, lines.join("\n\n") || "(empty)", true);
-        } catch (e) {
-          setOut(out, String(e.message || e), false);
+      document.getElementById("btn-inbox").onclick = loadInboxEmails;
+
+      function replySubjectFor(original) {
+        var base = (original || "").trim() || "(no subject)";
+        return base.toLowerCase().indexOf("re:") === 0 ? base : "Re: " + base;
+      }
+
+      function updateInboxReplyVisibility() {
+        var emptyEl = document.getElementById("inbox-reply-empty");
+        var formEl = document.getElementById("inbox-reply-form");
+        if (!emptyEl || !formEl) return;
+        if (selectedInboxIndex === null && !inboxComposeFromCrm) {
+          emptyEl.classList.remove("hidden");
+          formEl.classList.add("hidden");
+        } else {
+          emptyEl.classList.add("hidden");
+          formEl.classList.remove("hidden");
         }
-      };
+      }
+
+      function openInboxCrmCompose() {
+        if (!inboxComposeFromCrm) return;
+        updateInboxReplyVisibility();
+        var c = inboxComposeFromCrm;
+        var titleEl = document.getElementById("inbox-reply-title");
+        var metaEl = document.getElementById("inbox-reply-meta");
+        var sendBtn = document.getElementById("btn-inbox-send");
+        if (titleEl) titleEl.textContent = "Email to " + (c.name || c.email);
+        if (metaEl) {
+          metaEl.textContent =
+            "To: " +
+            c.email +
+            (c.company ? " · " + c.company : "") +
+            (c.role ? " · " + c.role : "");
+        }
+        if (sendBtn) sendBtn.textContent = "Send email";
+        document.getElementById("inbox-reply-subject").value = "";
+        document.getElementById("inbox-reply-body").value = "";
+        loadInboxSuggestions();
+      }
+
+      function renderInboxSuggestions(draft, suggestions, category) {
+        var wrap = document.getElementById("inbox-suggestions");
+        var badge = document.getElementById("inbox-reply-category");
+        if (badge) {
+          badge.textContent = category || "";
+          badge.className = "inbox-category-badge cat-" + String(category || "ARCHIVE").toLowerCase();
+        }
+        if (!wrap) return;
+        var all = [];
+        if (draft) all.push({ label: "Primary draft", text: draft });
+        (suggestions || []).forEach(function (s, i) {
+          all.push({ label: "Suggestion " + (i + 1), text: s });
+        });
+        if (!all.length) {
+          wrap.innerHTML = "";
+          return;
+        }
+        var html = "<p class='inbox-suggestions-label'>LLM suggestions — click to use</p><div class='inbox-suggestion-chips'>";
+        all.forEach(function (item, idx) {
+          html +=
+            "<button type='button' class='inbox-suggestion-chip' data-suggestion-idx='" +
+            idx +
+            "' title='" +
+            escapeHtml(item.text) +
+            "'>" +
+            escapeHtml(item.label) +
+            "</button>";
+        });
+        html += "</div>";
+        wrap.innerHTML = html;
+        wrap.querySelectorAll(".inbox-suggestion-chip").forEach(function (btn) {
+          btn.onclick = function () {
+            var idx = parseInt(btn.getAttribute("data-suggestion-idx"), 10);
+            var picked = all[idx];
+            if (picked) {
+              document.getElementById("inbox-reply-body").value = picked.text;
+            }
+          };
+        });
+      }
+
+      async function loadInboxSuggestions() {
+        var statusEl = document.getElementById("inbox-reply-status");
+        var regenBtn = document.getElementById("btn-inbox-regen");
+        if (selectedInboxIndex === null && !inboxComposeFromCrm) return;
+
+        var payload;
+        if (inboxComposeFromCrm) {
+          var c = inboxComposeFromCrm;
+          var ctxParts = [];
+          if (c.company) ctxParts.push("Company: " + c.company);
+          if (c.role) ctxParts.push("Role: " + c.role);
+          if (c.notes) ctxParts.push("Notes: " + c.notes);
+          payload = {
+            subject: "Message to " + (c.name || c.email),
+            body:
+              ctxParts.join("\n") ||
+              "Write a professional email to this customer contact.",
+            sender: c.email,
+            from_addr: c.email,
+          };
+        } else {
+          var email = inboxEmails[selectedInboxIndex];
+          if (!email) return;
+          payload = {
+            subject: email.subject || "",
+            body: email.body || email.preview || "",
+            sender: email.from_addr || email.from_raw || "",
+            from_addr: email.from_addr || "",
+          };
+        }
+
+        if (statusEl) statusEl.textContent = "Generating suggestions…";
+        if (regenBtn) regenBtn.disabled = true;
+        try {
+          var data = await postJSON("/api/inbox/suggest-reply", payload);
+          document.getElementById("inbox-reply-body").value = data.draft || "";
+          if (inboxComposeFromCrm) {
+            document.getElementById("inbox-reply-subject").value =
+              "Message for " + (inboxComposeFromCrm.name || inboxComposeFromCrm.email);
+          } else {
+            var inboxEmail = inboxEmails[selectedInboxIndex];
+            document.getElementById("inbox-reply-subject").value = replySubjectFor(
+              inboxEmail.subject
+            );
+          }
+          renderInboxSuggestions(data.draft, data.suggestions || [], data.category);
+          if (statusEl) statusEl.textContent = "Suggestions ready. Edit and send.";
+        } catch (e) {
+          if (statusEl) statusEl.textContent = String(e.message || e);
+        } finally {
+          if (regenBtn) regenBtn.disabled = false;
+        }
+      }
+
+      async function openInboxReply(index) {
+        inboxComposeFromCrm = null;
+        selectedInboxIndex = index;
+        updateInboxReplyVisibility();
+        var email = inboxEmails[index];
+        if (!email) return;
+        var titleEl = document.getElementById("inbox-reply-title");
+        var metaEl = document.getElementById("inbox-reply-meta");
+        var sendBtn = document.getElementById("btn-inbox-send");
+        if (sendBtn) sendBtn.textContent = "Send reply";
+        if (titleEl) titleEl.textContent = email.subject || "(no subject)";
+        if (metaEl) {
+          metaEl.textContent =
+            "To: " + (email.from_addr || email.from_raw || "?") + " · " + (email.date || "");
+        }
+        document.getElementById("inbox-reply-subject").value = replySubjectFor(email.subject);
+        document.getElementById("inbox-reply-body").value = "";
+        renderInboxList();
+        await loadInboxSuggestions();
+      }
+
+      function renderInboxList() {
+        var listEl = document.getElementById("inbox-list");
+        if (!listEl) return;
+        if (!inboxEmails.length) {
+          listEl.innerHTML = "<p class='inbox-empty'>No messages.</p>";
+          return;
+        }
+        var html = "";
+        inboxEmails.forEach(function (e, i) {
+          var active = selectedInboxIndex === i ? " is-active" : "";
+          html +=
+            "<article class='inbox-item" +
+            active +
+            "'>" +
+            "<div class='inbox-item-top'>" +
+            "<span class='inbox-item-subject'>" +
+            escapeHtml(e.subject || "(no subject)") +
+            "</span>" +
+            "<span class='inbox-item-date'>" +
+            escapeHtml(e.date || "") +
+            "</span>" +
+            "</div>" +
+            "<div class='inbox-item-from'>" +
+            escapeHtml(e.from_addr || e.from_raw || "?") +
+            "</div>" +
+            "<p class='inbox-item-preview'>" +
+            escapeHtml((e.preview || "").slice(0, 220)) +
+            "</p>" +
+            "<button type='button' class='primary inbox-reply-btn' data-inbox-idx='" +
+            i +
+            "'>Reply</button>" +
+            "</article>";
+        });
+        listEl.innerHTML = html;
+        listEl.querySelectorAll(".inbox-reply-btn").forEach(function (btn) {
+          btn.onclick = function () {
+            openInboxReply(parseInt(btn.getAttribute("data-inbox-idx"), 10));
+          };
+        });
+      }
+
+      async function loadInboxEmails() {
+        var listEl = document.getElementById("inbox-list");
+        if (listEl) listEl.innerHTML = "<p class='inbox-empty'>Loading…</p>";
+        var n = document.getElementById("in-n").value || "5";
+        try {
+          var res = await fetch("/api/inbox?n=" + encodeURIComponent(n));
+          var data = await res.json();
+          if (!data.ok) throw new Error(data.error || "Failed");
+          inboxEmails = data.emails || [];
+          if (!inboxEmails.length) {
+            selectedInboxIndex = null;
+            if (!inboxComposeFromCrm) updateInboxReplyVisibility();
+            if (listEl) listEl.innerHTML = "<p class='inbox-empty'>Inbox empty.</p>";
+            return;
+          }
+          renderInboxList();
+        } catch (e) {
+          inboxEmails = [];
+          selectedInboxIndex = null;
+          updateInboxReplyVisibility();
+          if (listEl) {
+            listEl.innerHTML = "<p class='inbox-empty err'>" + escapeHtml(String(e.message || e)) + "</p>";
+          }
+        }
+      }
+
+      async function sendInboxReply() {
+        var to = "";
+        var originalSubject = "";
+        if (inboxComposeFromCrm) {
+          to = (inboxComposeFromCrm.email || "").trim();
+          originalSubject = document.getElementById("inbox-reply-subject").value.trim();
+        } else {
+          if (selectedInboxIndex === null) return;
+          var email = inboxEmails[selectedInboxIndex];
+          if (!email) return;
+          to = (email.from_addr || "").trim();
+          originalSubject = email.subject || "";
+        }
+        if (!to) {
+          document.getElementById("inbox-reply-status").textContent = "No recipient address.";
+          return;
+        }
+        var replyBody = document.getElementById("inbox-reply-body").value.trim();
+        var replySubject = document.getElementById("inbox-reply-subject").value.trim();
+        if (!replyBody) {
+          document.getElementById("inbox-reply-status").textContent = "Reply body is empty.";
+          return;
+        }
+        var sendBtn = document.getElementById("btn-inbox-send");
+        var statusEl = document.getElementById("inbox-reply-status");
+        if (sendBtn) sendBtn.disabled = true;
+        if (statusEl) statusEl.textContent = "Sending via SMTP…";
+        try {
+          await postJSON("/api/inbox/reply", {
+            to: to,
+            reply_subject: replySubject,
+            reply_body: replyBody,
+            subject: originalSubject,
+          });
+          if (statusEl) statusEl.textContent = "Sent to " + to + ".";
+          if (inboxComposeFromCrm) {
+            inboxComposeFromCrm = null;
+            updateInboxReplyVisibility();
+          }
+        } catch (e) {
+          if (statusEl) statusEl.textContent = String(e.message || e);
+        } finally {
+          if (sendBtn) sendBtn.disabled = false;
+        }
+      }
+
+      var btnInboxRegen = document.getElementById("btn-inbox-regen");
+      if (btnInboxRegen) btnInboxRegen.onclick = loadInboxSuggestions;
+
+      var btnInboxSend = document.getElementById("btn-inbox-send");
+      if (btnInboxSend) btnInboxSend.onclick = sendInboxReply;
+
+      updateInboxReplyVisibility();
 
       function renderTable(rows, cols, maxCellLen) {
         maxCellLen = maxCellLen || 120;

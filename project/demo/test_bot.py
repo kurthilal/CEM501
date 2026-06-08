@@ -10,8 +10,8 @@ from pathlib import Path
 import httpx
 from dotenv import load_dotenv
 from telegram import Update
-from telegram.constants import ChatAction
-from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
+from telegram.constants import ChatAction, ChatMemberStatus
+from telegram.ext import ApplicationBuilder, ChatMemberHandler, ContextTypes, MessageHandler, filters
 
 from .classifier import classify_message
 from .drafter import draft_response
@@ -40,6 +40,56 @@ def _telegram_chat_allowed(chat_id: int | None) -> bool:
         except ValueError:
             continue
     return chat_id in allowed
+
+
+def _chat_title(chat) -> str:
+    title = (getattr(chat, "title", None) or "").strip()
+    if title:
+        return title
+    parts = [getattr(chat, "first_name", None) or "", getattr(chat, "last_name", None) or ""]
+    name = " ".join(p for p in parts if p).strip()
+    if name:
+        return name
+    username = getattr(chat, "username", None)
+    if username:
+        return f"@{username}"
+    return f"Chat {chat.id}"
+
+
+def _record_telegram_chat(mem: Memory, chat, *, is_active: bool = True) -> None:
+    mem.upsert_telegram_chat(
+        chat_id=chat.id,
+        chat_type=str(getattr(chat, "type", None) or Memory.infer_chat_type(chat.id)),
+        title=_chat_title(chat),
+        username=getattr(chat, "username", None),
+        is_active=is_active,
+    )
+
+
+async def handle_my_chat_member(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+) -> None:
+    """Track groups/channels when the bot is added or removed."""
+    my_cm = update.my_chat_member
+    if not my_cm:
+        return
+    chat = my_cm.chat
+    if not _telegram_chat_allowed(chat.id):
+        return
+
+    status = my_cm.new_chat_member.status
+    is_active = status in (
+        ChatMemberStatus.MEMBER,
+        ChatMemberStatus.ADMINISTRATOR,
+        ChatMemberStatus.CREATOR,
+    )
+    mem = Memory()
+    _record_telegram_chat(mem, chat, is_active=is_active)
+    label = _chat_title(chat)
+    if is_active:
+        print(f"[Telegram] bot joined {chat.type}: {label} (id={chat.id})")
+    else:
+        print(f"[Telegram] bot left {chat.type}: {label} (id={chat.id})")
 
 
 def _truncate_telegram_text(text: str, max_len: int = 3800) -> str:
@@ -108,6 +158,7 @@ async def handle_message(
     sender = user.first_name if user else "?"
 
     mem = Memory()
+    _record_telegram_chat(mem, msg.chat)
     mem.insert_telegram_message(
         chat_id=chat_id,
         user_id=user.id if user else None,
@@ -210,6 +261,7 @@ async def handle_photo(
         desc = "(No description was generated. Check ANTHROPIC_API_KEY and ANTHROPIC_MODEL.)"
 
     mem = Memory()
+    _record_telegram_chat(mem, msg.chat)
     try:
         mem.insert_telegram_message(
             chat_id=chat_id,
@@ -283,6 +335,7 @@ def main() -> None:
         )
 
     app = ApplicationBuilder().token(token).build()
+    app.add_handler(ChatMemberHandler(handle_my_chat_member, ChatMemberHandler.MY_CHAT_MEMBER))
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     print(f"Demo agent bot ({_BOT_VERSION}) is running... (Ctrl+C to stop)")

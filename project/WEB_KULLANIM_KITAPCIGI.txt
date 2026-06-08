@@ -1,0 +1,375 @@
+================================================================================
+CEM501 Web Arayüzü — Kullanım Kitapçığı
+Agent Dashboard (Türkçe)
+================================================================================
+
+Bu belge, CEM501 demo projesinin tarayıcı arayüzünü adım adım açıklar.
+Kurulum ve terminal komutları için: project/CALISTIRMA_KILAVUZU.txt
+
+
+--------------------------------------------------------------------------------
+1. ARAYÜZÜ AÇMA
+--------------------------------------------------------------------------------
+
+1. Terminalde project/ klasörüne gidin:
+     cd project
+
+2. Web sunucusunu başlatın:
+     python3 -m demo.web.app
+
+3. Tarayıcıda açın:
+     http://127.0.0.1:5000
+
+   Farklı port için .env dosyasına WEB_PORT=8081 ekleyin.
+
+4. Üst çubukta "CEM501 › [Bölüm adı]" görünür; sağda "Local" rozeti vardır.
+   Uygulama yalnızca localhost (127.0.0.1) üzerinde dinler — internete açmayın.
+
+
+--------------------------------------------------------------------------------
+2. SOL MENÜ SIRASI
+--------------------------------------------------------------------------------
+
+Sol menüdeki bölümler (yukarıdan aşağıya):
+
+  1. Dashboard              Genel özet ekranı
+  2. Daily TodoList         Günlük not ve checklist
+  3. Calendar               Gmail takvimi — listeleme ve etkinlik oluşturma
+  4. Customer Relations     Müşteri kayıtları ve satış pipeline
+  5. Social Media Drafter   LinkedIn / Instagram paylaşım taslağı
+  6. Inbox preview          E-posta okuma ve yanıtlama
+  7. Telegram chat          Telegram sohbet geçmişi ve web yanıtı
+  ─────────────────────
+  8. Memory (SQLite)        Veritabanı kayıtlarını görüntüleme
+
+Menüde görünmeyen ama kodda bulunan ek paneller (URL hash ile erişilebilir):
+  #classify   — Classifier (e-posta sınıflandırma testi)
+  #pipeline   — Full pipeline (sınıflandır + taslak)
+  #send       — SMTP send (serbest e-posta gönderme)
+  #cli        — Terminal komutları özeti
+
+
+--------------------------------------------------------------------------------
+3. DASHBOARD (Ana Sayfa)
+--------------------------------------------------------------------------------
+
+Amaç: Günün özetini tek ekranda görmek; diğer modüllere hızlı geçiş.
+
+Üst bölüm — Özet kartları (carousel):
+  Kartlar yatay kaydırılır; fare üzerine gelince duraklar.
+  - Unread emails      Okunmamış e-posta sayısı (zarf ikonu)
+  - Notifications      Bildirim sayısı (kırmızı zil ikonu)
+  - Telegram           Bekleyen / son Telegram aktivitesi (telefon ikonu)
+  - Calendar events    Yaklaşan takvim etkinlik sayısı
+  - Open todos         Açık checklist maddeleri (defter ikonu)
+
+  Kartlara tıklayınca ilgili modüle gidersiniz.
+
+Orta bölüm — Takvim + TodoList (yan yana):
+  Takvim:
+    - Ay görünümü (grid); önceki/sonraki ay okları
+    - Güne veya etkinliğe tıklayınca Calendar modülü açılır
+    - "Open Calendar →" bağlantısı
+    - Gmail hesabı .env içindeki EMAIL_ADDRESS ile aynıdır
+
+  Daily TodoList:
+    - Hızlı ekleme: metin kutusu + Checklist işareti + Add
+    - Bugünün maddeleri listelenir
+    - "Open list →" ile tam TodoList modülüne gider
+
+Alt bölüm — Üç panel:
+  - Unread emails    Son okunmamış mailler → "Inbox preview →"
+  - Notifications    Sistem bildirimleri → "Memory →"
+  - Telegram         Son mesaj özeti → "Open chat →"
+
+Refresh:
+  Sağ üstteki "Refresh" ile özet yenilenir.
+  Dashboard açıkken veriler periyodik olarak güncellenir.
+
+
+--------------------------------------------------------------------------------
+4. DAILY TODOLIST
+--------------------------------------------------------------------------------
+
+Amaç: Günlük not ve yapılacaklar listesi tutmak; isteğe bağlı takvim
+      etkinliğine dönüştürmek.
+
+Veri: project/demo/memory/memory.db — daily_todos tablosu
+
+Nasıl kullanılır:
+  1. "Add to today's list" alanına metin yazın.
+  2. "Checklist item" işaretli → checkbox'lı görev (tamamlanınca işaretlenir).
+     İşaretsiz → düz not (checkbox yok).
+  3. Add ile kaydedin.
+
+Liste:
+  - Her maddede checkbox (checklist ise), metin, silme
+  - "Create event" ile Google Calendar toplantısı oluşturulabilir
+    (WEB_ALLOW_SEND=1 gerekir)
+  - Refresh ile listeyi yenileyin
+
+Dashboard'dan da aynı listeye hızlı ekleme yapılabilir.
+
+
+--------------------------------------------------------------------------------
+5. CALENDAR
+--------------------------------------------------------------------------------
+
+Amaç: Gmail birincil takviminizi okumak ve yeni etkinlik/davet oluşturmak.
+
+Bağlantı: Inbox ile aynı hesap — EMAIL_ADDRESS + EMAIL_PASSWORD (Gmail uygulama
+          şifresi). CalDAV üzerinden çalışır; ek ayar gerekmez.
+
+Sol panel — Upcoming events:
+  - Önümüzdeki 30 günün etkinlikleri listelenir
+  - Refresh ile yenilenir
+  - Hesap e-postası panel altında gösterilir
+
+Sağ panel — New event formu:
+  Alanlar:
+    Title *          Etkinlik başlığı
+    All day          Tüm gün etkinliği
+    Start *          Başlangıç tarih/saat
+    End              Bitiş (boş bırakılabilir)
+    Location         Konum (Zoom, ofis vb.)
+    Invite guests    Davetli e-postalar (virgülle ayırın)
+    Description      Açıklama / gündem
+
+  Create event → Google takvimine yazar; davetlilere davet e-postası gider.
+  Clear → formu temizler.
+
+  Yazma işlemi için .env içinde WEB_ALLOW_SEND=1 olmalıdır.
+
+Dashboard takvimi:
+  - Ay grid görünümü; tıklayınca Calendar modülüne gider
+  - Aynı Gmail hesabını kullanır
+
+
+--------------------------------------------------------------------------------
+6. CUSTOMER RELATIONS (Müşteri İlişkileri)
+--------------------------------------------------------------------------------
+
+Amaç: Müşteri kayıtlarını yönetmek ve satış sürecini pipeline üzerinde takip etmek.
+
+Veri: demo/memory/memory.db — contacts tablosu
+
+Üst — Sales pipeline (Kanban):
+  Aşamalar (soldan sağa):
+    Cold call → Meeting → Demo → Offer → Accepted
+
+  Müşteriyi sürükleyip bırakarak aşama değiştirin:
+    - Sol listeden bir sütuna
+    - Veya sütunlar arasında
+
+Sol panel — Customers:
+  - Arama: isim, e-posta, şirket vb.
+  - Refresh ile listeyi yenileyin
+  - New customer → yeni kayıt formu
+
+Sağ panel — Müşteri formu:
+  Alanlar:
+    Name *     Zorunlu
+    Email      E-posta (Reply via email için gerekli)
+    Phone
+    Company
+    Role
+    Notes      Serbest notlar
+
+  Save    → kaydet / güncelle
+  Delete  → sil
+  Cancel  → iptal
+
+  Reply via email:
+    Müşterinin e-postası doluysa aktif olur.
+    Inbox preview modülüne gider; alıcı ve konu önceden doldurulur.
+    Yanıt SMTP ile gönderilir (WEB_ALLOW_SEND=1).
+
+
+--------------------------------------------------------------------------------
+7. SOCIAL MEDIA DRAFTER
+--------------------------------------------------------------------------------
+
+Amaç: LinkedIn ve Instagram için kaba notlardan paylaşım taslağı üretmek.
+
+İki yan yana kutucuk:
+
+  LinkedIn                          Instagram
+  ─────────                         ─────────
+  "Aklınıza gelenler" textarea      Aynı
+  Taslak öner                       Taslak öner
+  Kopyala                           Kopyala
+  Önerilen taslak                   Önerilen taslak
+  Alternatif şablonlar (2 adet)     Alternatif şablonlar (2 adet)
+
+Nasıl kullanılır:
+  1. İlgili platform kutusuna fikirlerinizi yazın (madde madde olabilir).
+  2. "Taslak öner"e tıklayın.
+  3. Ana taslak altta görünür.
+  4. "Şablon 1" / "Şablon 2" alternatif taslakları ana alana kopyalar.
+  5. "Kopyala" ile panoya alıp LinkedIn/Instagram'da yapıştırın.
+
+Yapay zeka:
+  - ANTHROPIC_API_KEY tanımlıysa Claude ile üretilir.
+  - Anahtar yoksa hazır şablon metinler kullanılır.
+
+
+--------------------------------------------------------------------------------
+8. INBOX PREVIEW
+--------------------------------------------------------------------------------
+
+Amaç: IMAP ile son e-postaları okumak, AI ile yanıt taslağı almak, SMTP ile
+      göndermek.
+
+Gereksinim: .env içinde EMAIL_ADDRESS, EMAIL_PASSWORD (Gmail uygulama şifresi)
+
+Sol panel — Mesaj listesi:
+  1. Kaç mail çekileceğini girin (varsayılan 5, en fazla 50).
+  2. Fetch ile listeyi yükleyin.
+  3. Bir e-postaya tıklayın.
+
+Sağ panel — Yanıt:
+  1. Reply ile LLM taslak ve alternatif öneriler gelir.
+  2. Subject ve Reply alanlarını düzenleyin.
+  3. Regenerate suggestions → yeni öneriler
+  4. Send reply → SMTP ile gönder (WEB_ALLOW_SEND=1 gerekir)
+
+Sınıflandırma:
+  Her mail URGENT / ACTION / FYI / ARCHIVE olarak etiketlenir (badge).
+
+Customer Relations bağlantısı:
+  "Reply via email" butonu müşteri e-postasını buraya taşır.
+
+
+--------------------------------------------------------------------------------
+9. TELEGRAM CHAT
+--------------------------------------------------------------------------------
+
+Amaç: Bot ile kaydedilen sohbetleri görmek ve web üzerinden yanıt göndermek.
+
+Sol panel — Chats & groups:
+  - Kayıtlı sohbetler listelenir
+  - Refresh ile yenilenir
+  - Bir sohbet seçin
+
+Sağ panel — Mesajlar:
+  - Metin ve fotoğraf mesajları görüntülenir
+  - Fotoğraflarda AI açıklaması (ANTHROPIC_API_KEY varsa) gösterilir
+
+Yanıt gönderme:
+  1. Reply alanına metin yazın.
+  2. Draft with AI → otomatik taslak (sınıflandır + draft)
+  3. Send → bot üzerinden gönder
+
+Gereksinimler:
+  - TELEGRAM_BOT_TOKEN (.env)
+  - WEB_ALLOW_SEND=1 (web'den gönderim için)
+  - Gelen mesajları almak için ayrı terminalde:
+      python3 -m demo.test_bot
+
+Not: Web'den yanıt için botun sürekli çalışması şart değildir; token yeterlidir.
+     Gelen mesajları kaydetmek için test_bot çalışmalıdır.
+
+
+--------------------------------------------------------------------------------
+10. MEMORY (SQLITE)
+--------------------------------------------------------------------------------
+
+Amaç: Arka plandaki veritabanı kayıtlarını ham tablo olarak incelemek.
+
+Dosya: project/demo/memory/memory.db
+
+Butonlar:
+  Load messages        E-posta/agent ve Telegram kayıtları (ayrı tablolar)
+  Load scheduled tasks Zamanlanmış görevler
+  Load contacts        Müşteri (contacts) kayıtları
+
+Bu bölüm salt okunurdur; düzenleme CRM veya diğer modüllerden yapılır.
+
+
+--------------------------------------------------------------------------------
+11. ORTAM DEĞİŞKENLERİ ÖZETİ (.env)
+--------------------------------------------------------------------------------
+
+  ANTHROPIC_API_KEY     Claude — sınıflandırma, taslak, sosyal medya, fotoğraf
+  ANTHROPIC_MODEL       İsteğe bağlı (varsayılan: claude-sonnet-4-6)
+
+  EMAIL_ADDRESS         Gmail / IMAP + SMTP + CalDAV takvim
+  EMAIL_PASSWORD        Uygulama şifresi (normal şifre değil)
+  IMAP_SERVER           imap.gmail.com
+  SMTP_SERVER           smtp.gmail.com
+  SMTP_PORT             587
+
+  TELEGRAM_BOT_TOKEN    Telegram bot
+  TELEGRAM_CHAT_ID      İsteğe bağlı — sadece belirli sohbetler
+
+  WEB_PORT              Web portu (varsayılan 5000)
+  WEB_ALLOW_SEND=1      E-posta, Telegram, takvim yazma, todo→etkinlik
+
+
+--------------------------------------------------------------------------------
+12. TİPİK KULLANIM SENARYOLARI
+--------------------------------------------------------------------------------
+
+Senaryo A — Güne hızlı başlangıç
+  1. Dashboard'u açın; özet kartlarına bakın.
+  2. TodoList'ten bugünün maddelerini ekleyin.
+  3. Takvimden toplantıları kontrol edin.
+
+Senaryo B — Müşteri takibi
+  1. Customer Relations → New customer
+  2. Bilgileri kaydedin; pipeline'da sürükleyin (Cold call → Meeting …)
+  3. Reply via email → Inbox'tan yanıt gönderin
+
+Senaryo C — Sosyal medya içeriği
+  1. Social Media Drafter → LinkedIn veya Instagram
+  2. Notları yazın → Taslak öner → Kopyala
+
+Senaryo D — E-posta triage
+  1. Inbox preview → Fetch
+  2. Mail seç → Reply → Send reply
+
+Senaryo E — Telegram
+  1. Terminal: python3 -m demo.test_bot
+  2. Web: Telegram chat → sohbet seç → yanıt yaz → Send
+
+
+--------------------------------------------------------------------------------
+13. SIK KARŞILAŞILAN SORUNLAR
+--------------------------------------------------------------------------------
+
+Dashboard boş / e-posta yok
+  → .env project/ klasöründe mi?
+  → Gmail uygulama şifresi doğru mu?
+  → Okunmamış mail olmayabilir; Inbox preview ile test edin
+
+Takvim / etkinlik oluşturulamıyor
+  → WEB_ALLOW_SEND=1
+  → EMAIL_ADDRESS ve uygulama şifresi geçerli mi?
+
+Telegram yanıt gitmiyor
+  → WEB_ALLOW_SEND=1 ve TELEGRAM_BOT_TOKEN
+  → Sohbet daha önce bot ile mesajlaşmış olmalı
+
+Social Media Drafter şablon modunda
+  → ANTHROPIC_API_KEY eksik veya geçersiz; .env kontrol edin
+  → Sunucuyu yeniden başlatın
+
+Veritabanı sıfırlama
+  → project/demo/memory/memory.db silinirse kayıtlar gider; ilk çalıştırmada
+    otomatik yeniden oluşur.
+
+
+--------------------------------------------------------------------------------
+14. İLGİLİ DOSYALAR
+--------------------------------------------------------------------------------
+
+  project/CALISTIRMA_KILAVUZU.txt     Kurulum, scheduler, terminal komutları
+  project/demo/ARCHITECTURE.md          Sistem mimarisi (İngilizce)
+  project/.env.example                  Tüm ortam değişkenleri
+  project/demo/web/templates/index.html   Arayüz şablonu
+  project/demo/web/app.py               Web API uç noktaları
+
+
+================================================================================
+CEM501 — İletişim Becerileri | Boğaziçi Üniversitesi | Bahar 2026
+================================================================================

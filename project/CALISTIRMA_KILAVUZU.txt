@@ -1,0 +1,388 @@
+================================================================================
+CEM501 Yapay Zeka E-posta ve İletişim Ajanı
+Kurulum ve Çalıştırma Kılavuzu (Türkçe)
+================================================================================
+
+Bu belge, CEM501 demo projesinin bilgisayarınızda nasıl kurulacağını ve
+çalıştırılacağını adım adım açıklar.
+
+Proje, gelen e-postaları okur, sınıflandırır, yanıt taslağı oluşturur,
+Telegram üzerinden mesajlaşır ve tüm verileri SQLite veritabanında saklar.
+Ayrıca bir web arayüzü (dashboard) ile bu işlemler tarayıcıdan yönetilebilir.
+
+
+--------------------------------------------------------------------------------
+1. GEREKSİNİMLER
+--------------------------------------------------------------------------------
+
+- Python 3.9 veya üzeri
+- İnternet bağlantısı (IMAP, SMTP, Telegram, LLM API çağrıları için)
+- macOS, Linux veya Windows
+
+Önerilen: Sanal ortam (venv) kullanımı
+
+
+--------------------------------------------------------------------------------
+2. PROJE YAPISI (ÖNEMLİ)
+--------------------------------------------------------------------------------
+
+Tüm komutlar "project/" klasöründen çalıştırılmalıdır:
+
+  CEM501/
+    project/
+      .env.example          Örnek ortam değişkenleri
+      .env                  Sizin oluşturacağınız gizli ayar dosyası
+      requirements.txt      Python paketleri
+      demo/                 Ana uygulama modülleri
+        reader.py           E-posta okuma (IMAP)
+        classifier.py       Mesaj sınıflandırma
+        drafter.py            E-posta yanıtı ve sosyal medya taslağı
+        sender.py             E-posta gönderme (SMTP)
+        scheduler.py          Otomatik e-posta işleme döngüsü
+        test_bot.py           Telegram botu
+        memory.py             SQLite veritabanı işlemleri
+        memory/memory.db      Veritabanı dosyası (otomatik oluşur)
+        web/                  Web arayüzü (Flask)
+      reader.py               CLI kısayolu (demo.reader'a yönlendirir)
+
+
+--------------------------------------------------------------------------------
+3. KURULUM ADIMLARI
+--------------------------------------------------------------------------------
+
+Adım 1 — Depoyu klonlayın ve proje klasörüne gidin
+
+  git clone <repo-adresi>
+  cd CEM501/project
+
+
+Adım 2 — Sanal ortam oluşturun (önerilir)
+
+  macOS / Linux:
+    python3 -m venv venv
+    source venv/bin/activate
+
+  Windows:
+    python -m venv venv
+    venv\Scripts\activate
+
+
+Adım 3 — Bağımlılıkları yükleyin
+
+  pip install -r requirements.txt
+
+  Yüklenen başlıca paketler:
+    flask, anthropic, python-telegram-bot, httpx, python-dotenv, schedule, rich
+
+
+Adım 4 — Ortam değişkenlerini ayarlayın
+
+  cp .env.example .env
+
+  Ardından .env dosyasını bir metin editörü ile açıp kendi bilgilerinizi girin.
+  .env dosyasını asla Git'e commit etmeyin (gizli anahtarlar içerir).
+
+
+--------------------------------------------------------------------------------
+4. ORTAM DEĞİŞKENLERİ (.env)
+--------------------------------------------------------------------------------
+
+Zorunlu / sık kullanılan ayarlar:
+
+  ANTHROPIC_API_KEY=...
+    Claude API anahtarı. Sınıflandırma ve taslak oluşturma için kullanılır.
+    Anahtar yoksa sistem basit kural tabanlı yedek (fallback) moduna geçer.
+
+  EMAIL_ADDRESS=...
+  EMAIL_PASSWORD=...
+    E-posta okuma ve gönderme için. Gmail kullanıyorsanız normal şifre değil,
+    "Uygulama Şifresi" (App Password) kullanın:
+    https://myaccount.google.com/apppasswords
+
+  IMAP_SERVER=imap.gmail.com
+  SMTP_SERVER=smtp.gmail.com
+  SMTP_PORT=587
+
+  TELEGRAM_BOT_TOKEN=...
+    Telegram bot token. @BotFather üzerinden bot oluşturup alınır.
+
+İsteğe bağlı ayarlar:
+
+  ANTHROPIC_MODEL=claude-sonnet-4-6
+  TELEGRAM_CHAT_ID=123456789
+    Sadece belirli sohbetlerden gelen mesajları kabul etmek için (virgülle ayırın).
+
+  WEB_PORT=5000
+    Web arayüzü portu (varsayılan 5000).
+
+  WEB_ALLOW_SEND=1
+    Tarayıcıdan e-posta ve Telegram yanıtı göndermeyi etkinleştirir.
+    Güvenlik için varsayılan olarak kapalıdır; sadece güvendiğiniz makinede açın.
+
+
+--------------------------------------------------------------------------------
+5. WEB ARAYÜZÜNÜ (DASHBOARD) ÇALIŞTIRMA
+--------------------------------------------------------------------------------
+
+Komut (project/ klasöründen):
+
+  python3 -m demo.web.app
+
+Tarayıcıda açın:
+
+  http://127.0.0.1:5000
+
+Farklı port için .env dosyasına WEB_PORT=8081 gibi bir değer ekleyin.
+
+Sol menüdeki bölümler (ayrıntılı adım adım kullanım):
+
+  Bkz. project/WEB_KULLANIM_KITAPCIGI.txt — web arayüzü kullanım kitapçığı
+
+  Dashboard              Okunmamış e-postalar, takvim, todo, bildirimler, Telegram
+  Daily TodoList         Günlük not / checklist; Google Calendar etkinliği
+  Calendar               Gmail takvimi — etkinlik listeleme ve davet oluşturma
+  Customer Relations     Müşteri kayıtları ve satış pipeline (Kanban)
+  Social Media Drafter   LinkedIn / Instagram paylaşım taslağı
+  Inbox preview          IMAP e-posta listesi ve yanıtlama
+  Telegram chat          Telegram geçmişi; web üzerinden yanıt
+  Memory (SQLite)        Veritabanı kayıtlarını görüntüleme
+
+  (Menüde olmayan ek paneller: Classifier, Full pipeline, SMTP send — URL hash ile)
+
+Dashboard'da takvim:
+  - Inbox / mail triage ile aynı EMAIL_ADDRESS ve uygulama şifresi kullanılır
+  - Ek ayar gerekmez; birincil takvimden önümüzdeki 7 gün listelenir
+
+Calendar modülü (sol menü):
+  - Sol: önümüzdeki 30 günün etkinlikleri
+  - Sağ: yeni etkinlik formu (başlık, tarih/saat, konum, davetliler, açıklama)
+  - Davetli e-posta adresleri girilirse Google takvim daveti gönderir
+  - Oluşturmak için WEB_ALLOW_SEND=1 gerekir (SMTP/Telegram ile aynı anahtar)
+
+Daily TodoList (sol menü + Dashboard):
+  - Günlük not ve checklist maddeleri (SQLite daily_todos)
+  - Checklist işaretlenince tamamlanır; notlar checkbox'sız kalır
+  - Her maddeden Create event ile Google Calendar toplantısı oluşturulabilir
+  - Dashboard üstünden hızlı ekleme yapılabilir
+
+Telegram yanıtı web'den göndermek için:
+  - TELEGRAM_BOT_TOKEN tanımlı olmalı
+  - WEB_ALLOW_SEND=1 olmalı
+  - İlgili sohbet daha önce bot ile mesajlaşmış olmalı (veritabanında kayıtlı)
+
+Customer Relations (müşteri yönetimi):
+  - Müşteriler demo/memory/memory.db içindeki contacts tablosunda saklanır
+  - Sol listeden müşteri seçin veya "New customer" ile yeni ekleyin
+  - Save ile kaydedin, Delete ile silin
+  - Arama kutusu ile isim, e-posta, şirket vb. arayabilirsiniz
+
+Güvenlik uyarısı:
+  Web uygulaması yalnızca 127.0.0.1 (localhost) üzerinde dinler.
+  Kimlik doğrulama olmadan internete açmayın.
+
+
+--------------------------------------------------------------------------------
+6. E-POSTA ZAMANLAYICISINI (SCHEDULER) ÇALIŞTIRMA
+--------------------------------------------------------------------------------
+
+Scheduler, gelen e-postaları okur → sınıflandırır → taslak oluşturur →
+veritabanına kaydeder → isteğe bağlı olarak SMTP ile gönderir.
+
+Tek seferlik test (göndermeden, kuru çalıştırma):
+
+  python3 -m demo.scheduler --once --dry-run --max-emails 5
+
+Tek seferlik, gerçekten e-posta göndermek için (--dry-run OLMADAN):
+
+  python3 -m demo.scheduler --once --max-emails 5
+
+Periyodik çalıştırma (her 10 dakikada bir, göndermeden):
+
+  python3 -m demo.scheduler --dry-run --interval-mins 10
+
+Parametreler:
+  --once              Bir kez çalış ve çık
+  --dry-run           SMTP ile gönderme yapma (sadece oku, sınıflandır, kaydet)
+  --max-emails N      En fazla N e-posta işle
+  --interval-mins N   Döngü aralığı (dakika, varsayılan 5)
+
+
+--------------------------------------------------------------------------------
+7. TELEGRAM BOTUNU ÇALIŞTIRMA
+--------------------------------------------------------------------------------
+
+Web arayüzünden bağımsız, ayrı bir terminal penceresinde:
+
+  python3 -m demo.test_bot
+
+Gereksinimler:
+  - .env içinde TELEGRAM_BOT_TOKEN tanımlı olmalı
+  - Bot Telegram'da kullanıcı tarafından en az bir kez başlatılmış olmalı
+
+Bot davranışı:
+  - Gelen metin mesajlarını sınıflandırır ve otomatik yanıt taslağı gönderir
+  - Gelen fotoğrafları (ANTHROPIC_API_KEY varsa) AI ile açıklar
+  - Tüm mesajlar demo/memory/memory.db dosyasına kaydedilir
+
+Durdurmak için: Ctrl+C
+
+Not: Web arayüzünden Telegram yanıtı göndermek için botun çalışması şart değildir;
+sadece TELEGRAM_BOT_TOKEN yeterlidir. Gelen mesajları almak için bot çalışmalıdır.
+
+
+--------------------------------------------------------------------------------
+8. E-POSTA OKUYUCUYU (CLI) ÇALIŞTIRMA
+--------------------------------------------------------------------------------
+
+Son e-postaları terminalde tablo olarak görmek için:
+
+  python3 reader.py
+
+veya:
+
+  python3 -m demo.reader
+
+IMAP ayarları (.env içindeki EMAIL_* değişkenleri) geçerli olmalıdır.
+
+
+--------------------------------------------------------------------------------
+9. TİPİK ÇALIŞMA SENARYOLARI
+--------------------------------------------------------------------------------
+
+Senaryo A — Sadece web arayüzünü denemek
+  1. pip install -r requirements.txt
+  2. cp .env.example .env  (en azından ANTHROPIC_API_KEY isteğe bağlı)
+  3. python3 -m demo.web.app
+  4. Tarayıcı: http://127.0.0.1:5000
+
+Senaryo B — E-posta + Telegram tam akış
+  1. .env dosyasını e-posta ve Telegram bilgileriyle doldurun
+  2. Terminal 1: python3 -m demo.web.app
+  3. Terminal 2: python3 -m demo.test_bot
+  4. Terminal 3 (isteğe bağlı): python3 -m demo.scheduler --dry-run --interval-mins 10
+
+Senaryo C — Customer Relations müşteri kaydı
+  1. Web arayüzünü başlatın
+  2. Sol menüden "Customer Relations" seçin
+  3. "New customer" → bilgileri girin → Save
+
+
+--------------------------------------------------------------------------------
+10. SIK KARŞILAŞILAN SORUNLAR
+--------------------------------------------------------------------------------
+
+"Setup OK" / import hatası
+  → pip install -r requirements.txt tekrar çalıştırın
+  → Sanal ortamın aktif olduğundan emin olun
+
+IMAP bağlantı hatası
+  → EMAIL_ADDRESS ve EMAIL_PASSWORD doğru mu?
+  → Gmail için uygulama şifresi kullanıyor musunuz?
+  → IMAP sunucusu doğru mu? (Gmail: imap.gmail.com)
+
+Dashboard'da e-posta görünmüyor
+  → .env dosyası project/ klasöründe mi?
+  → Okunmamış e-posta yoksa liste boş olabilir
+  → Inbox preview bölümünden IMAP bağlantısını test edin
+
+Telegram yanıtı gönderilemiyor
+  → WEB_ALLOW_SEND=1 ayarlandı mı?
+  → TELEGRAM_BOT_TOKEN doğru mu?
+  → Sohbet daha önce bot ile mesajlaşmış olmalı
+
+Telegram bot mesaj almıyor
+  → python3 -m demo.test_bot çalışıyor mu?
+  → TELEGRAM_CHAT_ID kısıtlaması varsa chat_id listede mi?
+
+Port zaten kullanımda
+  → .env içine WEB_PORT=8081 ekleyin veya diğer uygulamayı kapatın
+
+Veritabanı
+  → Dosya yolu: project/demo/memory/memory.db
+  → İlk çalıştırmada otomatik oluşur; silerseniz kayıtlar sıfırlanır
+
+
+--------------------------------------------------------------------------------
+11. API UÇ NOKTALARI (GELİŞTİRİCİLER İÇİN)
+--------------------------------------------------------------------------------
+
+Web sunucusu çalışırken örnek uç noktalar:
+
+  GET  /api/health
+  GET  /api/dashboard/summary
+  GET  /api/inbox?n=5
+  GET  /api/crm/customers
+  POST /api/crm/customers
+  PUT  /api/crm/customers/<id>
+  DELETE /api/crm/customers/<id>
+  GET  /api/telegram/chats
+  GET  /api/telegram/messages?chat_id=<id>
+  POST /api/telegram/send          (WEB_ALLOW_SEND=1 gerekir)
+  POST /api/classify
+  POST /api/draft
+  POST /api/pipeline
+  POST /api/send                     (WEB_ALLOW_SEND=1 gerekir, SMTP)
+
+
+--------------------------------------------------------------------------------
+12. EK BELGELER
+--------------------------------------------------------------------------------
+
+  project/WEB_KULLANIM_KITAPCIGI.txt  Web arayüzü kullanım kitapçığı (Türkçe)
+  project/CALISTIRMA_KILAVUZU.txt     Kurulum ve çalıştırma kılavuzu
+  project/demo/ARCHITECTURE.md        Sistem mimarisi (İngilizce)
+  project/ARCHITECTURE.md             Genel mimari özeti
+  project/.env.example                Tüm ortam değişkenleri
+  project/demo/web/README.md          Web modülü kısa açıklama
+
+
+--------------------------------------------------------------------------------
+13. PDF OLUŞTURMA (GÜNCEL KILAVUZ)
+--------------------------------------------------------------------------------
+
+Metin kılavuzlarından PDF üretmek için (macOS):
+
+  brew install pandoc basictex
+
+  cd project
+  ./scripts/build_kilavuz_pdf.sh
+
+Çıktılar project/docs/ klasörüne yazılır:
+
+  CALISTIRMA_KILAVUZU.pdf      Kurulum ve çalıştırma kılavuzu
+  WEB_KULLANIM_KITAPCIGI.pdf   Web arayüzü kullanım kitapçığı
+  CEM501_KILAVUZ_TAM.pdf         İki belge birleşik
+
+Sadece birini üretmek için:
+  ./scripts/build_kilavuz_pdf.sh --calistirma
+  ./scripts/build_kilavuz_pdf.sh --web
+  ./scripts/build_kilavuz_pdf.sh --combined
+
+.txt dosyalarını güncelledikten sonra scripti tekrar çalıştırmanız yeterlidir.
+Ayrıntılar: project/scripts/README.md
+
+
+--------------------------------------------------------------------------------
+ÖZET — EN SIK KULLANILAN KOMUTLAR
+--------------------------------------------------------------------------------
+
+  cd project
+  pip install -r requirements.txt
+  cp .env.example .env
+
+  # Web arayüzü
+  python3 -m demo.web.app
+
+  # Telegram bot
+  python3 -m demo.test_bot
+
+  # E-posta işleme (test, göndermeden)
+  python3 -m demo.scheduler --once --dry-run --max-emails 5
+
+  # E-posta listesi (terminal)
+  python3 reader.py
+
+
+================================================================================
+CEM501 — İletişim Becerileri | Boğaziçi Üniversitesi | Bahar 2026
+================================================================================
