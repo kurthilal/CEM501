@@ -1,0 +1,66 @@
+================================================================================
+CEM501 Poder Agent — End-to-end email pipeline log
+================================================================================
+Command : python3 -m demo.scheduler --once --dry-run --max-emails 5
+Date    : 2026-06-09
+Host    : localhost (project/demo/)
+Mode    : dry-run — read → classify → draft → SQLite log; SMTP send SKIPPED
+LLM     : Anthropic Claude (ANTHROPIC_API_KEY set)
+Pipeline: demo.reader → demo.classifier → demo.drafter → demo.memory
+================================================================================
+
+Each scenario below: IMAP fetch → URGENT/ACTION/FYI/ARCHIVE → draft reply →
+message_history + optional scheduled_tasks in demo/memory/memory.db
+
+--------------------------------------------------------------------------------
+Scenario 1 — Internal / low priority (ARCHIVE)
+Subject : ÖNEMLİ!: Ajan Kurulması
+Flow    : READ ok → CLASSIFY ARCHIVE → DRAFT (ack/archive template) → LOG
+--------------------------------------------------------------------------------
+2026-06-09 19:25:40,698 | INFO | httpx | HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-09 19:25:43,256 | INFO | httpx | HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-09 19:25:43,274 | INFO | scheduler | processed subject='ÖNEMLİ!: Ajan Kurulması' category=ARCHIVE dry_run=True
+
+--------------------------------------------------------------------------------
+Scenario 2 — Security notification (ARCHIVE)
+Subject : Security alert
+Flow    : READ ok → CLASSIFY ARCHIVE → DRAFT → LOG (no follow-up task)
+--------------------------------------------------------------------------------
+2026-06-09 19:25:45,631 | INFO | httpx | HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-09 19:25:49,408 | INFO | httpx | HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-09 19:25:49,415 | INFO | scheduler | processed subject='Security alert' category=ARCHIVE dry_run=True
+
+--------------------------------------------------------------------------------
+Scenario 3 — Construction site delay notice (FYI)
+Subject : Delay notice — formwork materials for Sector 3
+Flow    : READ ok → CLASSIFY FYI → DRAFT (informational ack) → LOG
+Note    : Typical CEM correspondence — supplier delay, no immediate action
+--------------------------------------------------------------------------------
+2026-06-09 19:25:51,064 | INFO | httpx | HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-09 19:25:58,565 | INFO | httpx | HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-09 19:25:58,588 | INFO | scheduler | processed subject='Delay notice — formwork materials for Sector 3' category=FYI dry_run=True
+
+--------------------------------------------------------------------------------
+Scenario 4 — Unsolicited job application (ARCHIVE)
+Subject : Job application — Civil Engineer position
+Flow    : READ ok → CLASSIFY ARCHIVE → DRAFT → LOG
+--------------------------------------------------------------------------------
+2026-06-09 19:26:00,434 | INFO | httpx | HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-09 19:26:04,688 | INFO | httpx | HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-09 19:26:04,707 | INFO | scheduler | processed subject='Job application — Civil Engineer position' category=ARCHIVE dry_run=True
+
+--------------------------------------------------------------------------------
+Scenario 5 — Utility maintenance requiring response (ACTION)
+Subject : Scheduled maintenance — gas main at Bahariye Caddesi — April 2-3
+Flow    : READ ok → CLASSIFY ACTION → DRAFT → LOG → scheduled_tasks (48h follow-up)
+Note    : ACTION category queues follow-up in SQLite for human review
+--------------------------------------------------------------------------------
+2026-06-09 19:26:06,527 | INFO | httpx | HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-09 19:26:14,083 | INFO | httpx | HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-06-09 19:26:14,103 | INFO | scheduler | processed subject='Scheduled maintenance — gas main at Bahariye Caddesi — April 2-3' category=ACTION dry_run=True
+
+================================================================================
+Summary: 5 emails processed | categories: ARCHIVE×3, FYI×1, ACTION×1 | sent: 0
+To reproduce: cd project && python3 -m demo.scheduler --once --dry-run --max-emails 5
+To send live (use with care): omit --dry-run and set WEB_ALLOW_SEND=1 for web review path
+================================================================================
